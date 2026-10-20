@@ -1,4 +1,4 @@
-name: One-time - sync v1.0.0 source archives
+name: One-time - finalize v1.0.0 source archives
 
 # Run manually from Actions on the main branch. Nothing runs on push.
 on:
@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out current main and tags
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: main
           fetch-depth: 0
@@ -25,7 +25,7 @@ jobs:
       - name: Guard and update only the v1.0.0 tag
         shell: bash
         env:
-          EXPECTED_OLD_TAG_SHA: a8226be44a4292fcf98b6804ca8439e285b046c4
+          EXPECTED_OLD_TAG_SHA: 50c894de9c18ada58904618275baf09f8092280d
         run: |
           set -euo pipefail
 
