@@ -6,4 +6,4 @@ Do not attach copyrighted movie files, commercial disc images, NAND backups, pro
 
 A code change that alters a runtime hook, firmware signature, installer transaction or uninstall restore path needs a fresh static/integrity audit **and** a live regression test. Cosmetic renaming of internal binary protocols is not safe.
 
-The project's public redistribution license and native hook provenance require maintainer review before accepting externally contributed code.
+Contributions must be original or accompanied by applicable permissions; see [License status](LICENSE-STATUS.md).
