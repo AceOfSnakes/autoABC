@@ -1,0 +1,33 @@
+# Local build and verification output (not part of the source repository)
+/dist/
+/build/
+/tmp/
+/coverage/
+
+# Release archives assembled or copied to the repository root
+/*.zip
+
+# Generated USB installer / player result logs at the repository root
+/autoABC.log
+/autoABC-result.txt
+/autoABC-uninstall-result.txt
+
+# Python bytecode, environments and test caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+
+# Local credentials (ignoring them is not a substitute for secret review)
+.env
+.env.*
+!.env.example
+
+# Editor and operating-system clutter
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
