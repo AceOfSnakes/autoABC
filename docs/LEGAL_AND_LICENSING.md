@@ -6,7 +6,7 @@ autoABC is an independent community modification. The source repository and the 
 
 - **Repository:** readable shell-side runtime components, AutoScript launchers, installer/uninstaller scripts, documentation and offline verification tools. It does **not** contain a complete source-to-binary build chain for every native ARM or hook component.
 - **GitHub release `v1.0.0`:** separate install and uninstall ZIPs containing the runtime payload, including compiled/native components. They are attached to the release even though the repository does not contain all of their build inputs.
-- **Current access:** this repository is private as of this documentation update. Private GitHub access and the existence of release downloads do **not** establish permission for subsequent public redistribution.
+- **Distribution status:** the release files are attached to GitHub. Repository visibility or the ability to download them does **not** by itself establish permission for public redistribution.
 
 ## Rights and provenance
 
@@ -14,14 +14,14 @@ Some native executables, hooks, code-signature samples or binary fragments have 
 
 No project-wide open-source license has been assigned; see [LICENSE-STATUS.md](../LICENSE-STATUS.md). A general disclaimer or a successful hardware test is not a substitute for permission to redistribute third-party or firmware-derived code.
 
-## Before making the repository and release public
+## Rights review for public distribution
 
 1. Identify authors and rights holders of the project's scripts, utilities and compiled/native components.
 2. Review any firmware-derived instructions, embedded data, third-party libraries and modified binaries for redistribution restrictions in the intended jurisdiction.
 3. Choose a license for material the maintainer is authorized to license; include applicable third-party licenses and notices, and clearly exclude material for which such a grant cannot be made.
 4. For components that cannot be redistributed, consider a documented local patch or build process using legitimately obtained inputs, where legally permitted. The existing checksum-and-copy workflow does **not** compile native code.
 5. Check published files and bug-report guidance for credentials, machine-specific data, dumps, copyrighted media and other sensitive material.
-6. Record the outcome of the rights review before changing repository visibility or treating the release archives as publicly redistributable.
+6. Document the outcome of the rights review and any distribution restrictions before presenting the archives as cleared for public redistribution.
 
 ## Practical distinction
 
