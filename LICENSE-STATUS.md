@@ -1,7 +1,9 @@
-# License status: review required
+# License and redistribution status
 
-No open-source license has been assigned on behalf of the rights holders by this handoff. In the absence of a grant, do **not** assume that original scripts, native executables, binary hook material or third-party content can be redistributed or modified freely.
+No project-wide open-source license has been assigned to autoABC. In the absence of an applicable grant, access to source code or downloads must **not** be interpreted as permission to reuse, modify or redistribute every included component.
 
-Before public publication, the maintainer must identify authors and contributors, choose and approve a license for material they actually own, and verify any separate permissions or exclusions for firmware-derived code and native/hook data. A disclaimer does not substitute for redistribution permission.
+The GitHub repository contains readable shell scripts and documentation; the `v1.0.0` release also includes installer and uninstaller ZIPs with native/runtime components. The repository is currently private. Availability of these archives on GitHub does not settle the authorship, provenance or public redistribution rights of every file.
 
-See [docs/LEGAL_AND_LICENSING.md](docs/LEGAL_AND_LICENSING.md).
+Before public distribution, the maintainer should identify the rights holders, review firmware-derived and third-party materials, select a license only for material they are authorized to license, and add notices or a legally suitable alternative distribution mechanism where needed.
+
+See [Copyright, licenses and distribution status](docs/LEGAL_AND_LICENSING.md) for the specific review checklist.
