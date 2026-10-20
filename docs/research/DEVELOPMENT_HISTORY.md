@@ -24,7 +24,7 @@ Physical BD-J session management was refined with a cautious playback-state heur
 
 The final installation uses a guarded jailbreak-overlay boot integration, exact code-signature checks, manifest-pinned runtime content, separate install/uninstall launchers and explicit result logs. A persistent disc cache was removed; the only user option is `ISO_BDMV=1` (default) or `ISO_BDMV=0` for physical-disc-only auto-region.
 
-The release contains 44 immutable installed files and one editable config. The maintainer confirmed the 1.0.0 mod works. In the subsequent public packaging pass, the unnecessary README files were dropped from the installer/uninstaller ZIPs; all functional member bytes remained unchanged and new archive hashes were verified offline.
+The release contains 44 immutable installed files and one editable config. The maintainer confirmed the 1.0.0 mod works. The published installer/uninstaller archives retain identical functional member bytes and their final hashes were verified offline.
 
 ## Design principles
 

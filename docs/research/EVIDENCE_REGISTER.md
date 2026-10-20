@@ -15,7 +15,7 @@ This public evidence register describes **what was actually observed or tested**
 | Physical BD-J PSR20 and global region can temporarily differ | Hardware observation | [Physical BD-J](PHYSICAL_BDJ.md) |
 | ISO/BDMV branch defaults on and can be disabled | Source and packaged config | [Configuration](../CONFIGURATION.md) |
 | Runtime contains 44 immutable hashed files plus editable config | Nested installed-payload manifest | [Release engineering](RELEASE_ENGINEERING.md) |
-| The maintainer confirms functional autoABC 1.0.0 | Maintainer confirmation | [Verification](../VERIFICATION.md), distinguished from repacked-ZIP offline tests |
-| Exact README-free release files have not been modified functionally | Byte comparison of 50+ entries and manifest verification | [Release verification](../VERIFICATION.md) |
+| The maintainer confirms functional autoABC 1.0.0 | Maintainer confirmation | [Verification](../VERIFICATION.md), distinguished from offline release-integrity tests |
+| Published release archives preserve functional payload bytes | Byte comparison of 50+ entries and manifest verification | [Release verification](../VERIFICATION.md) |
 
 **Evidence boundaries:** hardware observations are title-specific; synthetic coverage is not hardware playback; file-integrity checks are not a live-installation test. Where exact internal timestamps, raw logs, or full native source are not public, this register identifies the resulting limitation rather than claiming independent third-party reproduction.

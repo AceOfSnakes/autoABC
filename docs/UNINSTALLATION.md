@@ -11,7 +11,7 @@ Use the **standalone** `autoABC-1.0.0-uninstall.zip`, not the installer ZIP and 
 5. Verify `autoABC-uninstall-result.txt` at the USB root contains **`UNINSTALLED`**. The tray may open as an extra indicator, but that alone is insufficient.
 6. Remove the USB and fully power-cycle again.
 
-SHA-256 of the README-free release ZIP:
+SHA-256 of the release ZIP:
 
 ```text
 aa15f85d37eac272fbffad3d27800c1efc220657cda794876e25b827836c7862
@@ -25,7 +25,7 @@ aa15f85d37eac272fbffad3d27800c1efc220657cda794876e25b827836c7862
 - Leaves unrelated jailbreak overlay content and unrelated mods untouched.
 - Does not depend on a functioning `bdpprog.1` player signature, so a broken playback process should not itself block removal.
 
-autoABC 1.0.0 is reported working by the maintainer. The README-free repacking keeps the uninstaller launcher and script byte-identical; the revised outer ZIP has been verified offline.
+autoABC 1.0.0 is reported working by the maintainer. The published uninstaller retains byte-identical launcher and script payloads and has been verified offline.
 
 ## Failure or no result file
 

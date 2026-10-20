@@ -3,7 +3,7 @@
 ## The distinction
 
 - **Source repository:** English documentation, readable integration shell scripts, read-only diagnostic source, AutoScript launcher source, engineering evidence index and offline verification tools.
-- **Sealed release assets:** the two README-free ZIPs derived from the maintainer-supplied 1.0.0 archives, retaining byte-identical functional components.
+- **Sealed release assets:** two checksum-pinned USB ZIPs retaining byte-identical functional components from the validated 1.0.0 payloads.
 - **Development records:** historical reports and lab notes are maintained separately.
 
 Do **not** interpret the source repository as a complete from-scratch build system for every native binary. The complete ARM source/toolchain/reproducible build inputs are not present in this source repository. The shell files copied under `src/runtime` and `installer` match the release assets byte-for-byte; the repository intentionally does not duplicate the native release assets.

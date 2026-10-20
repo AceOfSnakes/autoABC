@@ -25,7 +25,7 @@ This is a curated record of project testing, including physical-disc runs, virtu
 - **Physical hardware evidence:** the specified title or disc was tested on an OPPO UDP-203 in the development record.
 - **Virtual playback evidence:** ISO or BDMV region detection was exercised in playback; this is not automatically the same as a physical retail-disc pass.
 - **Synthetic / static evidence:** an explicitly constructed detection case or parsed source pattern checked algorithm coverage without proving playback of a real disc.
-- **Final version:** autoABC 1.0.0 is reported working by the maintainer. The separately redistributed README-free archives contain the identical functional payload files; their new ZIP envelopes were verified offline.
+- **Final version:** autoABC 1.0.0 is reported working by the maintainer. The published USB archives contain byte-identical functional payload files and passed offline archive verification.
 
 The **C-only** and **A+C** region combinations are implemented but lack separately documented physical-disc confirmations in the supplied research. Different releases may use unusual Java, additional country conditions or unrelated player checks. No universal per-title playback guarantee is made.
 

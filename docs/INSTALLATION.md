@@ -62,7 +62,7 @@ Change the value to `0` only if you want automatic region switching for physical
 5. Remove the USB stick **before another start**. Fully power-cycle the player.
 6. Verify `config.ini`, runtime status and representative physical/media playback tests. See [Verification](VERIFICATION.md).
 
-The installer checks four exact live player instructions **before changing the existing installation**. It also refuses unidentified or ambiguous boot-monitor ownership and unexpected payload hashes. autoABC 1.0.0 is confirmed working by the maintainer. The README-free ZIP keeps every functional file unchanged; its updated archive manifest and new outer packaging have been verified offline.
+The installer checks four exact live player instructions **before changing the existing installation**. It also refuses unidentified or ambiguous boot-monitor ownership and unexpected payload hashes. autoABC 1.0.0 is confirmed working by the maintainer. The published USB archives preserve the validated functional payloads and passed offline archive/manifest verification.
 
 ## Configuration after installation
 

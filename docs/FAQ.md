@@ -14,8 +14,6 @@
 
 **Does autoABC maintain a per-disc cache?**  No; no cache feature or setting exists in 1.0.0.
 
-**Are the release ZIPs missing documentation?**  Intentionally: the README and guides are in this repository, so the two small AutoScript ZIPs carry only installation or removal files, checks and manifests.
-
 **Is this a jailbreak-firmware installation?**  No. The required RU-JB firmware and working overlay must already be installed.
 
 **What if the optical tray opens but there is no result file?**  Tray motion alone does not demonstrate success. Read `autoABC.log` or `autoABC-uninstall.log` and follow [Troubleshooting](TROUBLESHOOTING.md).

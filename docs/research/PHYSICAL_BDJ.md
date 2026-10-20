@@ -20,7 +20,7 @@ This heuristic reduced premature global restoration during tested physical BD-J 
 
 ## Remaining uncertainty
 
-Decoder fields are not an official title-state API. A background video/menu can produce PLAY-like HBI values after HOME; thread counts differ among discs. The archived evidence explicitly notes such a post-HOME PLAY-like state, so a broad guarantee of correct menu behavior would be unjustified. The maintainer reports the final 1.0.0 version working. The subsequent README-free archive repacking has been verified offline without new on-device execution.
+Decoder fields are not an official title-state API. A background video/menu can produce PLAY-like HBI values after HOME; thread counts differ among discs. The archived evidence explicitly notes such a post-HOME PLAY-like state, so a broad guarantee of correct menu behavior would be unjustified. The maintainer reports the final 1.0.0 version working. The exact published USB archives have been verified offline without a separate new on-device execution.
 
 ## What a meaningful new test should record
 

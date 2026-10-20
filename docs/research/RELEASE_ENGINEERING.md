@@ -1,6 +1,6 @@
 # Release engineering and integrity
 
-Release 1.0.0 ships **two distinct USB AutoScript archives**. The README is maintained in the GitHub repository and intentionally **not duplicated inside either ZIP**. Both public archives were repacked from the maintainer-supplied functioning 1.0.0 ZIPs with **no changes to their functional members**. The outer `SHA256SUMS_RELEASE` manifest was regenerated because `README.md` was removed. No runtime code, launchers or configuration bytes were changed.
+Release 1.0.0 ships **two distinct USB AutoScript archives** with fixed SHA-256 manifests. Both published archives retain the validated 1.0.0 functional payload bytes; no runtime code, AutoScript launchers or configuration bytes were changed during release preparation.
 
 ## Installer
 
@@ -30,4 +30,4 @@ The public source tree supplies the readable shell components and offline checke
 
 ## Verification scope
 
-The maintainer confirmed autoABC 1.0.0 functionality. This rework performed computer-side ZIP CRC, manifest and byte-equivalence verification on both **README-free** archives; it did **not** conduct a new USB hardware test specifically of the newly repacked outer ZIP envelopes. See [Verification](../VERIFICATION.md) and [Evidence register](EVIDENCE_REGISTER.md).
+The maintainer confirmed autoABC 1.0.0 functionality. The exact published USB archives passed computer-side ZIP CRC, manifest and byte-equivalence checks; this verification did **not** include a separate new USB hardware test of the published archives. See [Verification](../VERIFICATION.md) and [Evidence register](EVIDENCE_REGISTER.md).

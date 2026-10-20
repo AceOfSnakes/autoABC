@@ -59,7 +59,7 @@ Download the two **release assets**, not GitHub's automatically generated source
 - **`autoABC-1.0.0-install.zip`** – installs or reinstalls autoABC; includes `AutoScript/config.ini` and a read-only checker.
 - **`autoABC-1.0.0-uninstall.zip`** – removes autoABC and restores its guarded early-boot changes.
 
-The release ZIPs intentionally **do not include a README**; all instructions are in this repository. The ZIPs have separate internal `SHA256SUMS_RELEASE` manifests. **Never mix the two `AutoScript/` trees on one USB stick.**
+The ZIPs have separate internal `SHA256SUMS_RELEASE` manifests. **Never mix the two `AutoScript/` trees on one USB stick.**
 
 1. Check that your player has the required jailbreak firmware and confirm you can recover the current overlay setup.
 2. Stop playback, eject any disc and extract **only** the install ZIP to the root of a clean USB stick, so the root contains `AutoScript/AutoScript.TSS`.

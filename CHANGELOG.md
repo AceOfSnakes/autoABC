@@ -9,6 +9,6 @@
 - Guarded jailbreak-overlay installation, signature validation and separate USB uninstall.
 - Single editable option (`ISO_BDMV`), per-file integrity verification and post-install read-only checker.
 - No persistent disc cache.
-- Public release archives omit the redundant top-level README; documentation lives in this repository.
+- Verified the published USB release archives and SHA-256 manifests.
 
 See [Release notes](docs/RELEASE_NOTES_1.0.0.md) and [Verification](docs/VERIFICATION.md).
