@@ -110,4 +110,4 @@ The repository includes the **readable shell-side components, AutoScript launche
 
 ## Disclaimer
 
-Unofficial community software, not affiliated with or endorsed by OPPO Digital. Installing runtime hooks or early-boot changes carries risks; use a tested recovery plan. Region support is extensive but cannot guarantee successful playback of every Blu-ray title or edition.
+This independent project is not affiliated with or endorsed by OPPO Digital. Region support is extensive but cannot guarantee successful playback of every Blu-ray title or edition.
