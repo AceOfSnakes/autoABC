@@ -1,9 +1,7 @@
-# License and redistribution status
+# License status
 
-No project-wide open-source license has been assigned to autoABC. In the absence of an applicable grant, access to source code or downloads must **not** be interpreted as permission to reuse, modify or redistribute every included component.
+autoABC is an independent community modification for the OPPO UDP-203 RU-JB 65-0131 environment.
 
-The GitHub repository contains readable shell scripts and documentation; the `v1.0.0` release also includes installer and uninstaller ZIPs with native/runtime components. Repository visibility and availability of these archives on GitHub do not settle the authorship, provenance or public redistribution rights of every file.
+No general open-source license has been selected for this repository. Making code or release ZIPs available on GitHub does not automatically grant others permission to redistribute them or firmware-derived material.
 
-Before public distribution, the maintainer should identify the rights holders, review firmware-derived and third-party materials, select a license only for material they are authorized to license, and add notices or a legally suitable alternative distribution mechanism where needed.
-
-See [Copyright, licenses and distribution status](docs/LEGAL_AND_LICENSING.md) for the specific review checklist.
+OPPO firmware and trademarks belong to their respective owners. autoABC is not affiliated with OPPO Digital. See [Project origin and distribution](docs/LEGAL_AND_LICENSING.md).
