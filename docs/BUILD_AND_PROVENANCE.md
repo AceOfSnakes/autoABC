@@ -2,11 +2,11 @@
 
 ## The distinction
 
-- **Public repository:** English documentation, readable integration shell scripts, read-only diagnostic source, AutoScript launcher source, engineering evidence index and offline verification tools.
+- **Source repository:** English documentation, readable integration shell scripts, read-only diagnostic source, AutoScript launcher source, engineering evidence index and offline verification tools.
 - **Sealed release assets:** the two README-free ZIPs derived from the maintainer-supplied 1.0.0 archives, retaining byte-identical functional components.
-- **Private development sources:** development reports and lab notes, historic tests, binary provenance and any restricted inputs not cleared for public redistribution.
+- **Development records:** historical reports and lab notes are maintained separately.
 
-Do **not** interpret the source repository as a complete from-scratch build system for every native binary. The complete ARM source/toolchain/reproducible build inputs are not present in this public repository, and some hook binaries require independent rights checks. The shell files copied under `src/runtime` and `installer` match the release assets byte-for-byte; the repository intentionally omits the unverified binary assets.
+Do **not** interpret the source repository as a complete from-scratch build system for every native binary. The complete ARM source/toolchain/reproducible build inputs are not present in this source repository. The shell files copied under `src/runtime` and `installer` match the release assets byte-for-byte; the repository intentionally does not duplicate the native release assets.
 
 ## Release archive verification / assembly
 
