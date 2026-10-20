@@ -106,7 +106,7 @@ The installer also contains `CHECK_READONLY.sh`, a **post-installation** integri
 
 ## Code and build scope
 
-The repository includes the **readable shell-side components, AutoScript launchers, tests, offline validation tools and research documentation**. It does not contain a full independent native ARM/hook-binary build chain. The packaged binary components need their own redistribution-rights assessment. [Build and provenance](docs/BUILD_AND_PROVENANCE.md) · [Licensing status](docs/LEGAL_AND_LICENSING.md).
+The repository includes the **readable shell-side components, AutoScript launchers, tests, offline validation tools and research documentation**. It does not contain a full independent native ARM/hook-binary build chain. The release ZIPs include compiled helpers and firmware-specific hook data; they are not a complete native source build. [Build and provenance](docs/BUILD_AND_PROVENANCE.md) · [Licensing status](docs/LEGAL_AND_LICENSING.md).
 
 ## Disclaimer
 
