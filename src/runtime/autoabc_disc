@@ -1,0 +1,510 @@
+#!/bin/sh
+VERSION="autoABC physical disc detector"
+BASE="/mnt/ubi_boot/autoABC"
+FAST="$BASE/autoabc_detect"
+CG="$BASE/autoabc_bdj"
+HF="$BASE/autoabc_hdmv"
+MOBJ="/mnt/disc_00_0/BDMV/MovieObject.bdmv"
+ALT_MOBJ="/mnt/sr0/BDMV/MovieObject.bdmv"
+LOG="$BASE/regiond.log"
+STATE="$BASE/regiond.state"
+PIDFILE="$BASE/regiond.pid"
+SELF_PID="$$"
+BB="/mnt/ubi_boot/jb_overlay/bin/busybox"
+[ -x "$BB" ] || BB="/bin/busybox"
+
+cleanup_pidfile() {
+    P="$(cat "$PIDFILE" 2>/dev/null)"
+    [ "$P" = "$SELF_PID" ] && rm -f "$PIDFILE"
+}
+trap 'cleanup_pidfile' 0
+trap 'exit 0' 1 2 15
+echo "$SELF_PID" > "$PIDFILE"
+
+log() {
+    TS="$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null)"
+    [ -n "$TS" ] || TS="NO_DATE"
+    echo "$TS $*" >> "$LOG"
+}
+
+pause_fast() {
+    "$BB" usleep 5000 2>/dev/null || "$BB" sleep 1
+}
+
+find_pid() {
+    for p in /proc/[0-9]*; do
+        [ -r "$p/comm" ] || continue
+        if [ "$(cat "$p/comm" 2>/dev/null)" = "bdpprog.1" ]; then
+            echo "${p##*/}"
+            return 0
+        fi
+    done
+    return 1
+}
+
+compatible_pid() {
+    p="$1"
+    [ -n "$p" ] || return 1
+    [ "$(cat /proc/$p/comm 2>/dev/null)" = "bdpprog.1" ] || return 1
+    grep -qi '^011d8000-0127f000 .*w' "/proc/$p/maps" 2>/dev/null || return 1
+    return 0
+}
+
+wait_for_bdpprog() {
+    WAIT_LOGGED=0
+    while :; do
+        PID="$(find_pid)"
+        if compatible_pid "$PID"; then
+            return 0
+        fi
+        if [ "$WAIT_LOGGED" = "0" ]; then
+            log "$VERSION WAITING_FOR_BDPPROG pid=$$"
+            WAIT_LOGGED=1
+        fi
+        pause_fast
+    done
+}
+
+wait_for_disc() {
+    ACTIVE=""
+    while :; do
+        if [ -f "$MOBJ" ]; then ACTIVE="$MOBJ"; return 0; fi
+        if [ -f "$ALT_MOBJ" ]; then ACTIVE="$ALT_MOBJ"; return 0; fi
+        pause_fast
+    done
+}
+
+wait_for_disc_gone() {
+    while :; do
+        if [ ! -f "$MOBJ" ] && [ ! -f "$ALT_MOBJ" ]; then
+            "$BB" usleep 50000 2>/dev/null || "$BB" sleep 1
+            [ ! -f "$MOBJ" ] && [ ! -f "$ALT_MOBJ" ] && return 0
+        fi
+        pause_fast
+    done
+}
+
+# Physical BD-J PSR20 gate mailbox. The hook itself is installed by
+# region_psr20_hookd and is independent of PERS / drive type. Writes fail open
+# if the hook is not installed yet or the target PID/profile no longer matches.
+psr_mailbox_addr() {
+    set -- $(cat /tmp/autoabc_psr20_hook.state 2>/dev/null)
+    HP="$1"; HPROF="$2"
+    [ "$HP" = "$PID" ] || return 1
+    [ "$(cat /proc/$HP/comm 2>/dev/null)" = "bdpprog.1" ] || return 1
+    case "$HPROF" in
+        base) echo $((0x01c03c00 + 0x0fc));;
+        extended) echo $((0x01c11400 + 0x0fc));;
+        *) return 1;;
+    esac
+}
+
+psr_mailbox_write() {
+    WHICH="$1"
+    A="$(psr_mailbox_addr)" || return 0
+    case "$WHICH" in
+        RESET) F="$BASE/hook/mailbox_reset.bin";;
+        A) F="$BASE/hook/mailbox_A.bin";;
+        B) F="$BASE/hook/mailbox_B.bin";;
+        C) F="$BASE/hook/mailbox_C.bin";;
+        PASS) F="$BASE/hook/mailbox_PASS.bin";;
+        *) return 0;;
+    esac
+    "$BB" dd if="$F" of="/proc/$PID/mem" bs=1 seek="$A" conv=notrunc 2>/dev/null || return 0
+}
+
+psr_mailbox_is_request() {
+    A="$(psr_mailbox_addr)" || return 1
+    T="/tmp/autoabc_psr20_request.$$"
+    "$BB" dd if="/proc/$PID/mem" of="$T" bs=1 skip="$A" count=4 2>/dev/null || { rm -f "$T"; return 1; }
+    "$BB" cmp -s "$T" "$BASE/hook/mailbox_REQUEST.bin"
+    R=$?
+    rm -f "$T"
+    return $R
+}
+
+psr_mailbox_publish_region() {
+    case "$1" in
+        A|B|C) psr_mailbox_write "$1";;
+        *) psr_mailbox_write PASS;;
+    esac
+}
+
+# Physical BD-J playback state from the original-player HBI B block.
+# Hardware-tested against physical BD-J STOP/PLAY/HOME/EJECT transitions.
+# recording confirm offset +0x04=index5, +0x08=selector, +0x0c=active,
+# +0x10=mode.  It is not a universal PLAY/STOP API. Unexpected states fail
+# back to a 250 ms grace policy; never patch HBI or the PSR20 gate.
+# Guard every CBR change against virtual_active=1 to avoid ISO conflicts.
+HBI_BASE_DEC=19442264             # 0x0128AA58; 20-byte fixed read
+CBR_ADDR_DEC=19089148            # 0x012346FC, one-byte read
+VIRTUAL_ACTIVE_DEC=29383172      # 0x01c05a04, one-byte read
+
+hbi_bdj_state() {
+    HRAW="$("$BB" dd if="/proc/$PID/mem" bs=1 skip="$HBI_BASE_DEC" count=20 2>/dev/null | "$BB" hexdump -v -e '1/1 "%02x"' 2>/dev/null)"
+    [ "${#HRAW}" -eq 40 ] || { echo UNREADABLE; return; }
+    case "$HRAW" in
+        ????????05000000010000000100000001000000) echo PLAY ;;
+        ????????05000000000000000000000000000000) echo STOP ;;
+        ????????05000000*) echo TRANSITION ;;
+        *) echo UNREADABLE ;;
+    esac
+}
+
+bdj_virtual_active() {
+    VRAW="$("$BB" dd if="/proc/$PID/mem" bs=1 skip="$VIRTUAL_ACTIVE_DEC" count=1 2>/dev/null | "$BB" hexdump -v -e '1/1 "%02x"' 2>/dev/null)"
+    [ "${#VRAW}" -eq 2 ] || { echo UNREADABLE; return; }
+    echo "$VRAW"
+}
+
+bdj_thread_count() {
+    "$BB" awk '$1=="Threads:" {print $2; exit}' "/proc/$PID/status" 2>/dev/null
+}
+
+bdj_global_cbr() {
+    "$BB" dd if="/proc/$PID/mem" bs=1 skip="$CBR_ADDR_DEC" count=1 2>/dev/null | "$BB" hexdump -v -e '1/1 "%02x"' 2>/dev/null
+}
+
+bdj_hbi_supported() {
+    case "$(hbi_bdj_state)" in PLAY|STOP|TRANSITION) return 0 ;; *) return 1 ;; esac
+}
+
+# Only runs for the physical BD-J PSR20-request fallback.
+# STOP/HOME must settle to selector/active/mode=0/0/0. During navigation,
+# short zero states can occur with a high thread count, so require the
+# confirmed large thread decrease OR a longer continuously stopped window.
+# PLAY rearm requires both selector AND engine active/mode=1, twice.
+# All unknown states are read-only; any sustained read failure returns to
+# short grace policy and keeps the PSR20 mailbox unchanged.
+bdj_hold_until_disc_gone() {
+    BDJ_HELD=1
+    BDJ_SEEN_PLAY=0
+    BDJ_PLAY_THREADS=0
+    BDJ_PLAY_STREAK=0
+    BDJ_STOP_STREAK=0
+    BDJ_READ_FAIL=0
+    log "BDJ_HBI_START region=$REGION pid=$PID source=$ACTIVE"
+    while :; do
+        if [ ! -f "$MOBJ" ] && [ ! -f "$ALT_MOBJ" ]; then
+            "$BB" usleep 50000 2>/dev/null || "$BB" sleep 1
+            [ ! -f "$MOBJ" ] && [ ! -f "$ALT_MOBJ" ] && return 0
+        fi
+        if ! compatible_pid "$PID"; then
+            log "BDJ_HBI_PLAYER_LOST stop_writes=YES"
+            wait_for_disc_gone
+            return 0
+        fi
+        VF="$(bdj_virtual_active)"
+        if [ "$VF" = 01 ]; then
+            # The virtual restore daemon owns CBR during ISO/BDMV playback.
+            BDJ_PLAY_STREAK=0
+            BDJ_STOP_STREAK=0
+            "$BB" usleep 200000 2>/dev/null || "$BB" sleep 1
+            continue
+        fi
+        if [ "$VF" != 00 ]; then
+            # Virtual origin is unreadable; do not claim ownership or write CBR.
+            # Retry later rather than potentially overriding an ISO session.
+            BDJ_PLAY_STREAK=0
+            BDJ_STOP_STREAK=0
+            "$BB" usleep 200000 2>/dev/null || "$BB" sleep 1
+            continue
+        fi
+        HS="$(hbi_bdj_state)"
+        case "$HS" in
+            PLAY)
+                BDJ_READ_FAIL=0
+                BDJ_STOP_STREAK=0
+                BDJ_PLAY_STREAK=$((BDJ_PLAY_STREAK + 1))
+                if [ "$BDJ_PLAY_STREAK" -ge 2 ]; then
+                    BDJ_SEEN_PLAY=1
+                    TN="$(bdj_thread_count)"
+                    case "$TN" in
+                        ''|*[!0-9]*) ;;
+                        *) [ "$TN" -gt "$BDJ_PLAY_THREADS" ] && BDJ_PLAY_THREADS="$TN" ;;
+                    esac
+                    if [ "$BDJ_HELD" -eq 0 ]; then
+                        if [ "$(bdj_global_cbr)" != "$(case "$REGION" in A) echo 01;; B) echo 02;; C) echo 03;; esac)" ]; then
+                            if "$FAST" set "$PID" "$REGION" >/dev/null 2>&1; then
+                                BDJ_HELD=1
+                                log "BDJ_REPLAY_APPLY region=$REGION hbi=PLAY threads=$TN"
+                            fi
+                        else
+                            BDJ_HELD=1
+                        fi
+                    fi
+                fi
+                ;;
+            STOP)
+                BDJ_READ_FAIL=0
+                BDJ_PLAY_STREAK=0
+                BDJ_STOP_STREAK=$((BDJ_STOP_STREAK + 1))
+                if [ "$BDJ_HELD" -eq 1 ] && [ "$BDJ_STOP_STREAK" -ge 8 ]; then
+                    TN="$(bdj_thread_count)"
+                    LOW_THREADS=NO
+                    case "$TN" in
+                        ''|*[!0-9]*) ;;
+                        *) if [ "$BDJ_PLAY_THREADS" -ge 40 ] && [ "$TN" -le $((BDJ_PLAY_THREADS - 20)) ]; then LOW_THREADS=YES; fi ;;
+                    esac
+                    # 8 samples (~1.6s) and a large thread drop, or 30
+                    # continuously STOP samples (~6s). No remote-key hook.
+                    if [ "$LOW_THREADS" = YES ] || [ "$BDJ_STOP_STREAK" -ge 30 ]; then
+                        if "$FAST" set "$PID" off >/dev/null 2>&1; then
+                            BDJ_HELD=0
+                            log "BDJ_STOP_RESTORE region=$REGION threads=$TN active_threads=$BDJ_PLAY_THREADS stop_samples=$BDJ_STOP_STREAK restoring=STOCK mailbox_preserved=YES"
+                        fi
+                    fi
+                fi
+                ;;
+            TRANSITION)
+                BDJ_READ_FAIL=0
+                BDJ_PLAY_STREAK=0
+                BDJ_STOP_STREAK=0
+                ;;
+            *)
+                BDJ_PLAY_STREAK=0
+                BDJ_STOP_STREAK=0
+                BDJ_READ_FAIL=$((BDJ_READ_FAIL + 1))
+                if [ "$BDJ_READ_FAIL" -ge 10 ]; then
+                    log "BDJ_HBI_UNAVAILABLE reverting=GRACE_250MS"
+                    restore_global_stock_after_bdj_gate "$REGION"
+                    wait_for_disc_gone
+                    return 0
+                fi
+                ;;
+        esac
+        "$BB" usleep 200000 2>/dev/null || "$BB" sleep 1
+    done
+}
+
+# The physical BD-J fallback needs the selected region at the
+# standardized PSR20 gate.  Keep the per-disc mailbox at A/B/C, but return the
+# global CBR to STOCK shortly after the gated Java read is released.  This
+# mirrors the virtual preplay behavior and avoids leaving the player's visible
+# runtime region pinned for the whole physical-disc session.
+restore_global_stock_after_bdj_gate() {
+    R="$1"
+    case "$R" in A|B|C) ;; *) return 0;; esac
+    "$BB" usleep 250000 2>/dev/null || "$BB" sleep 1
+    if compatible_pid "$PID"; then
+        "$FAST" set "$PID" off >/dev/null 2>&1 || return 0
+        log "PHYSICAL_BDJ_CBR_RESTORE region=$R restoring=STOCK mailbox_region=$R grace_ms=250"
+    fi
+}
+
+
+mount_id_log() {
+    MP="$1"
+    MID="$($BB awk -v m="$MP" '$5==m {print $1; exit}' /proc/self/mountinfo 2>/dev/null)"
+    [ -n "$MID" ] || MID=NA
+    echo "$MID"
+}
+
+log_mount_snapshot() {
+    MID_DISC="$(mount_id_log /mnt/disc_00_0)"
+    MID_SR0="$(mount_id_log /mnt/sr0)"
+    log "PHYSICAL_MOUNT_SNAPSHOT disc_00_0=$MID_DISC sr0=$MID_SR0 control=LOG_ONLY"
+}
+
+apply_callgraph() {
+    MASK="$($CG "$ACTIVE" 2>/dev/null)"
+    case "$MASK" in
+        1) "$FAST" set "$PID" A >/dev/null 2>&1 && echo A ;;
+        2) "$FAST" set "$PID" B >/dev/null 2>&1 && echo B ;;
+        3) "$FAST" set "$PID" A >/dev/null 2>&1 && echo A ;;
+        4) "$FAST" set "$PID" C >/dev/null 2>&1 && echo C ;;
+        5) "$FAST" set "$PID" A >/dev/null 2>&1 && echo A ;;
+        6) "$FAST" set "$PID" B >/dev/null 2>&1 && echo B ;;
+        7) "$FAST" set "$PID" off >/dev/null 2>&1; echo FREE ;;
+        *) echo UNKNOWN ;;
+    esac
+}
+
+resolve_on_psr20_request() {
+    log "PSR20_REQUEST_DETECTED source=$ACTIVE bdpprog_pid=$PID action=RUN_BDJ_CALLGRAPH"
+    CGREGION="$(apply_callgraph)"
+    case "$CGREGION" in
+        A|B|C|FREE)
+            REGION="$CGREGION"
+            DETECTOR="BDJ_CALLGRAPH_PSR20_REQUEST"
+            psr_mailbox_publish_region "$REGION"
+            echo "$REGION" > "$STATE"
+            log "PSR20_REQUEST_RESOLVED region=$REGION detector=$DETECTOR bdpprog_pid=$PID"
+            if bdj_hbi_supported; then
+                BDJ_HBI_HOLD=YES
+                log "BDJ_HBI_SUPPORTED region=$REGION action=HOLD_UNTIL_NATIVE_STOP"
+            else
+                BDJ_HBI_HOLD=NO
+                restore_global_stock_after_bdj_gate "$REGION"
+                log "BDJ_HBI_UNAVAILABLE action=GRACE_250MS"
+            fi
+            return 0
+            ;;
+        *)
+            # Release this Java read fail-open, then reset shortly afterwards so
+            # a later PSR20 read can request a fresh retry in the same session.
+            psr_mailbox_write PASS
+            log "PSR20_REQUEST_UNRESOLVED result=UNKNOWN action=PASS_THEN_REARM"
+            "$BB" usleep 100000 2>/dev/null || "$BB" sleep 1
+            psr_mailbox_write RESET
+            return 1
+            ;;
+    esac
+}
+
+try_hdmv_controlflow_fallback() {
+    # Native-HDMV fallback for first-play PSR20 guards
+    # that CORE leaves UNKNOWN/AMBIGUOUS. It is read-only on disc files
+    # and does not use the disabled cache. Unsupported patterns fail open.
+    [ -x "$HF" ] || return 1
+    HREGION="$("$HF" "$ACTIVE" 2>/dev/null)"
+    case "$HREGION" in
+        A|B|C)
+            "$FAST" set "$PID" "$HREGION" >/dev/null 2>&1 || return 1
+            REGION="$HREGION"
+            DETECTOR="HDMV_CONTROLFLOW_FALLBACK"
+            psr_mailbox_publish_region "$REGION"
+            echo "$REGION" > "$STATE"
+            log "HDMV_FALLBACK_RESOLVED region=$REGION detector=$DETECTOR bdpprog_pid=$PID source=$ACTIVE"
+            return 0
+            ;;
+        *)
+            log "HDMV_FALLBACK_UNRESOLVED result=UNKNOWN action=BDJ_REQUEST_FALLBACK source=$ACTIVE"
+            return 1
+            ;;
+    esac
+}
+
+wait_unknown_session() {
+    # Do not scan BD-J at first mount visibility. Wait until the title itself
+    # reaches the standardized PSR20 query, then resolve on demand.
+    while :; do
+        if [ ! -f "$MOBJ" ] && [ ! -f "$ALT_MOBJ" ]; then
+            "$BB" usleep 50000 2>/dev/null || "$BB" sleep 1
+            [ ! -f "$MOBJ" ] && [ ! -f "$ALT_MOBJ" ] && return 1
+        fi
+        if psr_mailbox_is_request; then
+            resolve_on_psr20_request && return 0
+            # unresolved: mailbox is rearmed to RESET by resolver; wait for the
+            # next genuine PSR20 call rather than hammering the optical disc.
+        else
+            pause_fast
+        fi
+    done
+}
+
+log "$VERSION EARLY_START pid=$$"
+wait_for_bdpprog
+"$FAST" set "$PID" off >/dev/null 2>&1
+psr_mailbox_write RESET
+log "$VERSION BDPPROG_READY bdpprog_pid=$PID cbr_reset=STOCK psr20_gate_mailbox=RESET"
+
+while :; do
+    wait_for_disc
+    psr_mailbox_write RESET
+    log_mount_snapshot
+
+    if ! compatible_pid "$PID"; then
+        wait_for_bdpprog
+        "$FAST" set "$PID" off >/dev/null 2>&1
+        log "$VERSION BDPPROG_REACQUIRED bdpprog_pid=$PID cbr_reset=STOCK"
+    fi
+
+    # No region cache is used. The live decision path
+    # starts directly with the normal fast/core detector.
+    REGION="$("$FAST" apply "$ACTIVE" "$PID" 2>/dev/null)"
+    [ -n "$REGION" ] || REGION="UNKNOWN"
+    DETECTOR="CORE"
+
+    # CORE is fast but heuristic. The native-HDMV
+    # control-flow parser can produce a high-confidence answer for a small
+    # class of discs that CORE may classify incorrectly rather than leaving
+    # UNKNOWN. Validate only concrete A/B/C CORE answers; FREE remains owned
+    # by CORE. A conflicting high-confidence HDMV result wins.
+    case "$REGION" in
+        A|B|C)
+            CORE_REGION="$REGION"
+            if [ -x "$HF" ]; then
+                HREGION="$("$HF" "$ACTIVE" 2>/dev/null)"
+                case "$HREGION" in
+                    A|B|C)
+                        if [ "$HREGION" != "$CORE_REGION" ]; then
+                            if "$FAST" set "$PID" "$HREGION" >/dev/null 2>&1; then
+                                REGION="$HREGION"
+                                DETECTOR="HDMV_CONTROLFLOW_VALIDATOR"
+                                log "HDMV_CORE_CONFLICT core_region=$CORE_REGION hdmv_region=$HREGION action=OVERRIDE bdpprog_pid=$PID source=$ACTIVE"
+                            else
+                                log "HDMV_CORE_CONFLICT core_region=$CORE_REGION hdmv_region=$HREGION action=KEEP_CORE_SET_FAILED bdpprog_pid=$PID source=$ACTIVE"
+                            fi
+                        else
+                            log "HDMV_CORE_VALIDATED region=$CORE_REGION action=KEEP_CORE source=$ACTIVE"
+                        fi
+                        ;;
+                esac
+            fi
+            ;;
+    esac
+
+    case "$REGION" in
+        A|B|C|FREE)
+            psr_mailbox_publish_region "$REGION"
+            echo "$REGION" > "$STATE"
+            case "$REGION" in
+                A|B|C)
+                    log "PSR20_GATE_PUBLISH region=$REGION detector=$DETECTOR bdpprog_pid=$PID"
+                    # Keep the previously determined CORE result.
+                    ;;
+                FREE) log "PSR20_GATE_PUBLISH result=PASS detector=$DETECTOR region=FREE bdpprog_pid=$PID";;
+            esac
+            ;;
+        UNKNOWN|AMBIGUOUS|*)
+            echo "$REGION" > "$STATE"
+            log "HDMV_FALLBACK_TRY region=$REGION detector=$DETECTOR source=$ACTIVE"
+            if try_hdmv_controlflow_fallback; then
+                : # REGION/DETECTOR/mailbox/state updated by HDMV fallback
+            else
+                log "BDJ_CALLGRAPH_DEFERRED region=$REGION detector=$DETECTOR reason=WAIT_FOR_PSR20_REQUEST source=$ACTIVE"
+                if wait_unknown_session; then
+                    : # REGION/DETECTOR/mailbox/state updated by BD-J resolver
+                else
+                    REGION="UNKNOWN"
+                fi
+            fi
+            ;;
+    esac
+
+    case "$REGION" in
+        A|B|C)
+            case "$DETECTOR" in
+                BDJ_CALLGRAPH_PSR20_REQUEST)
+                    if [ "${BDJ_HBI_HOLD:-NO}" = YES ]; then
+                        log "AUTO_GATE region=$REGION detector=$DETECTOR global_cbr=HBI_HELD psr20_mailbox=$REGION bdpprog_pid=$PID source=$ACTIVE"
+                    else
+                        log "AUTO_GATE region=$REGION detector=$DETECTOR global_cbr=STOCK psr20_mailbox=$REGION bdpprog_pid=$PID source=$ACTIVE"
+                    fi
+                    ;;
+                *)
+                    log "AUTO_APPLY region=$REGION detector=$DETECTOR bdpprog_pid=$PID source=$ACTIVE"
+                    ;;
+            esac
+            ;;
+        FREE)
+            "$FAST" set "$PID" off >/dev/null 2>&1
+            log "AUTO_SKIP region=FREE detector=$DETECTOR stock_preserved=YES source=$ACTIVE"
+            ;;
+        UNKNOWN|AMBIGUOUS|*)
+            log "AUTO_PENDING region=$REGION reason=PSR20_REQUEST_DRIVEN stock_preserved=YES source=$ACTIVE"
+            ;;
+    esac
+
+    if [ "$DETECTOR" = BDJ_CALLGRAPH_PSR20_REQUEST ] && [ "${BDJ_HBI_HOLD:-NO}" = YES ]; then
+        bdj_hold_until_disc_gone
+    else
+        wait_for_disc_gone
+    fi
+    if compatible_pid "$PID"; then "$FAST" set "$PID" off >/dev/null 2>&1; fi
+    psr_mailbox_write RESET
+    : > "$STATE"
+    log_mount_snapshot
+    log "PHYSICAL_SESSION_END reason=BOTH_ALIASES_GONE restoring=STOCK"
+done

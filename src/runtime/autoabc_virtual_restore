@@ -1,0 +1,55 @@
+#!/bin/sh
+VERSION="autoABC virtual restore"
+BASE="/mnt/ubi_boot/autoABC"; FAST="$BASE/autoabc_detect"; LOG="$BASE/restore.log"; PIDFILE="$BASE/restore.pid"
+STATE="/tmp/autoabc_virtual.state"; DISABLED="/tmp/autoabc_disabled"
+BB="/mnt/ubi_boot/jb_overlay/bin/busybox"; [ -x "$BB" ] || BB="/bin/busybox"
+VFLAG_DEC=29383172; CBR_DEC=19089148; SELF="$$"
+echo "$SELF" > "$PIDFILE"
+log(){ TS="$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null)"; [ -n "$TS" ] || TS=NO_DATE; echo "$TS $*" >> "$LOG"; }
+cleanup(){ P="$(cat "$PIDFILE" 2>/dev/null)"; [ "$P" = "$SELF" ] && rm -f "$PIDFILE"; }
+trap 'cleanup' 0; trap 'exit 0' 1 2 15
+compatible(){ P="$1"; case "$P" in ''|*[!0-9]*) return 1;; esac; [ "$(cat /proc/$P/comm 2>/dev/null)" = "bdpprog.1" ] && [ -r "/proc/$P/mem" ]; }
+rdbyte(){ dd if="/proc/$1/mem" bs=1 skip="$2" count=1 2>/dev/null | hexdump -v -e '1/1 "%02x"' 2>/dev/null; }
+vflag(){ rdbyte "$1" "$VFLAG_DEC"; }
+cbr(){ rdbyte "$1" "$CBR_DEC"; }
+state_read(){ set -- $(cat "$STATE" 2>/dev/null); SGEN="$1"; SPID="$2"; SREG="$3"; STYPE="$4"; }
+state_same(){ state_read; [ "$SGEN" = "$1" ] && [ "$SPID" = "$2" ]; }
+expected(){ case "$1" in A) echo 01;; B) echo 02;; C) echo 03;; *) echo ff;; esac; }
+set_expected(){ case "$1" in A|B|C) "$FAST" set "$2" "$1" >/dev/null 2>&1;; *) return 1;; esac; }
+log "$VERSION START pid=$SELF"
+while :; do
+    if [ -e "$DISABLED" ]; then rm -f "$STATE"; "$BB" usleep 20000 2>/dev/null || "$BB" sleep 1; continue; fi
+    [ -f "$STATE" ] || { "$BB" usleep 5000 2>/dev/null || "$BB" sleep 1; continue; }
+    state_read; GEN="$SGEN"; PID="$SPID"; REGION="$SREG"; TYPE="$STYPE"
+    compatible "$PID" || { rm -f "$STATE"; log "RESTORE_DROP gen=$GEN dead_pid=$PID"; continue; }
+    ACTIVE=0; N=0
+    while [ "$N" -lt 2000 ]; do
+        state_same "$GEN" "$PID" || break
+        [ "$(vflag "$PID")" = "01" ] && { ACTIVE=1; break; }
+        N=$((N+1)); "$BB" usleep 5000 2>/dev/null || "$BB" sleep 1
+    done
+    if [ "$ACTIVE" != 1 ]; then
+        if state_same "$GEN" "$PID"; then "$FAST" set "$PID" off >/dev/null 2>&1; rm -f "$STATE"; log "RESTORE_NO_ACTIVE gen=$GEN type=$TYPE region=$REGION restoring=STOCK"; fi
+        continue
+    fi
+    EXP="$(expected "$REGION")"; REASSERTS=0
+    # From native virtual_active=1 until playback ends, only repair unexpected CBR overwrites.
+    # This does not continuously write; it writes only when another component changed CBR.
+    CUR="$(cbr "$PID")"
+    if [ "$CUR" != "$EXP" ]; then set_expected "$REGION" "$PID" && REASSERTS=$((REASSERTS+1)); log "RESTORE_ACTIVE_REASSERT gen=$GEN type=$TYPE region=$REGION from=${CUR:-NA} to=$EXP"; fi
+    log "RESTORE_ACTIVE gen=$GEN type=$TYPE region=$REGION cbr=$(cbr "$PID")"
+    while compatible "$PID" && state_same "$GEN" "$PID"; do
+        [ "$(vflag "$PID")" = "01" ] || break
+        CUR="$(cbr "$PID")"
+        if [ "$CUR" != "$EXP" ]; then
+            if set_expected "$REGION" "$PID"; then REASSERTS=$((REASSERTS+1)); log "RESTORE_HOLD_REASSERT gen=$GEN type=$TYPE region=$REGION from=${CUR:-NA} to=$EXP count=$REASSERTS"; fi
+        fi
+        "$BB" usleep 20000 2>/dev/null || "$BB" sleep 1
+    done
+    state_same "$GEN" "$PID" || { log "RESTORE_SUPERSEDED gen=$GEN"; continue; }
+    "$BB" usleep 50000 2>/dev/null || :
+    state_same "$GEN" "$PID" || { log "RESTORE_SUPERSEDED_AFTER_GRACE gen=$GEN"; continue; }
+    [ "$(vflag "$PID")" = "01" ] && continue
+    "$FAST" set "$PID" off >/dev/null 2>&1; rm -f "$STATE"
+    log "RESTORE_PLAY_END gen=$GEN type=$TYPE region=$REGION reasserts=$REASSERTS restoring=STOCK"
+done

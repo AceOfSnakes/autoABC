@@ -1,0 +1,70 @@
+#!/bin/sh
+VERSION="autoABC virtual source hook"
+BASE="/mnt/ubi_boot/autoABC"; LOG="$BASE/hookd.log"; PIDFILE="$BASE/hookd.pid"
+BB="/mnt/ubi_boot/jb_overlay/bin/busybox"; [ -x "$BB" ] || BB="/bin/busybox"
+BDMV_ADDR=$((0x01c006c8)); ISO_ADDR=$((0x01c007e4)); GOT_ADDR=$((0x011d8e40)); BASE_CAVE=$((0x01c03a00)); EXT_CAVE=$((0x01c11200)); ORIG_OFF=$((0x20)); WRAP_OFF=$((0x80))
+SELF="$$"; echo "$SELF" > "$PIDFILE"
+log(){ TS="$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null)"; [ -n "$TS" ] || TS=NO_DATE; echo "$TS $*" >> "$LOG"; }
+read_mem(){ P="$1"; A="$2"; N="$3"; O="$4"; "$BB" dd if="/proc/$P/mem" of="$O" bs=1 skip="$A" count="$N" 2>/dev/null; [ "$("$BB" wc -c < "$O" 2>/dev/null)" = "$N" ]; }
+write_mem(){ P="$1"; A="$2"; F="$3"; "$BB" dd if="$F" of="/proc/$P/mem" bs=1 seek="$A" conv=notrunc 2>/dev/null; }
+same_mem(){ P="$1"; A="$2"; N="$3"; F="$4"; T="/tmp/ra_cmp_${SELF}"; read_mem "$P" "$A" "$N" "$T" || { rm -f "$T"; return 1; }; "$BB" cmp -s "$T" "$F"; R=$?; rm -f "$T"; return $R; }
+find_pid(){ for p in /proc/[0-9]*; do [ -r "$p/comm" ] || continue; [ "$(cat "$p/comm" 2>/dev/null)" = "bdpprog.1" ] && { echo "${p##*/}"; return 0; }; done; return 1; }
+prof_data(){
+ case "$1" in
+  base) C="$BASE_CAVE"; H="$BASE/hook/got_hook_base.bin"; W="$BASE/hook/got_wrapper_base.bin" ;;
+  extended) C="$EXT_CAVE"; H="$BASE/hook/got_hook_extended.bin"; W="$BASE/hook/got_wrapper_extended.bin" ;;
+  *) return 1;;
+ esac
+}
+# A cave is usable only when empty or holding exactly our own current hook.
+# Unknown or historic hooks are deliberately rejected instead of migrated live.
+blob_is_current(){ P="$1"; PROF="$2"; prof_data "$PROF" || return 1; same_mem "$P" "$C" $((0x20)) "$BASE/hook/got_hook_base_prefix.bin" || return 1; same_mem "$P" $((C+0x24)) $((0x200-0x24)) "$BASE/hook/got_hook_${PROF}_suffix.bin"; }
+cave_usable(){ P="$1"; PROF="$2"; prof_data "$PROF" || return 1; same_mem "$P" "$C" 512 "$BASE/hook/zero512.bin" && return 0; blob_is_current "$P" "$PROF"; }
+installed_prof(){ P="$1"; PROF="$2"; prof_data "$PROF" || return 1; blob_is_current "$P" "$PROF" || return 1; same_mem "$P" "$GOT_ADDR" 4 "$W"; }
+restore_current(){
+ set -- $(cat /tmp/autoabc_hook.state 2>/dev/null); P="$1"; PROF="$2"
+ case "$P" in ''|*[!0-9]*) return 0;; esac
+ [ "$(cat /proc/$P/comm 2>/dev/null)" = "bdpprog.1" ] || return 0
+ prof_data "$PROF" || return 0
+ if installed_prof "$P" "$PROF"; then T="/tmp/ra_origgot_${SELF}"; read_mem "$P" $((C+ORIG_OFF)) 4 "$T" && write_mem "$P" "$GOT_ADDR" "$T" && log "GOT_RESTORED pid=$P profile=$PROF"; rm -f "$T"; fi
+ rm -f /tmp/autoabc_hook.state /tmp/autoabc_bdpprog.pid
+}
+cleanup(){ restore_current; P="$(cat "$PIDFILE" 2>/dev/null)"; [ "$P" = "$SELF" ] && rm -f "$PIDFILE"; }
+trap 'cleanup' 0
+trap 'exit 0' 1 2 15
+install_hook(){
+ P="$1"; [ -r "/proc/$P/mem" ] || return 2
+ if installed_prof "$P" extended; then echo "$P extended" > /tmp/autoabc_hook.state; echo "$P extended" > /tmp/autoabc_bdpprog.pid; return 0; fi
+ if installed_prof "$P" base; then echo "$P base" > /tmp/autoabc_hook.state; echo "$P base" > /tmp/autoabc_bdpprog.pid; return 0; fi
+ BOK=0; IOK=0
+ same_mem "$P" "$BDMV_ADDR" 4 "$BASE/hook/orig_bdmv.bin" && BOK=1
+ same_mem "$P" "$ISO_ADDR" 4 "$BASE/hook/orig_iso.bin" && IOK=1
+ [ "$BOK" = 1 ] && [ "$IOK" = 1 ] || { log "HOOK_ABORT unexpected_preplay_signatures pid=$P"; return 3; }
+ same_mem "$P" $((0x00a1fb62)) 20 "$BASE/hook/sig_bdmv_real_ln_call.bin" || { log "HOOK_ABORT real_bdmv_ln_call_signature pid=$P"; return 3; }
+ same_mem "$P" $((0x01c045f4)) 26 "$BASE/hook/sig_iso_mount.bin" || { log "HOOK_ABORT iso_mount_signature pid=$P"; return 3; }
+ PROF=""; if cave_usable "$P" extended; then PROF=extended; elif cave_usable "$P" base; then PROF=base; else log "HOOK_ABORT cave_not_empty_or_owned pid=$P"; return 4; fi
+ prof_data "$PROF"
+ GOTTMP="/tmp/ra_got_${SELF}"; read_mem "$P" "$GOT_ADDR" 4 "$GOTTMP" || return 5
+ if "$BB" cmp -s "$GOTTMP" "$BASE/hook/got_unresolved.bin"; then rm -f "$GOTTMP"; return 10; fi
+ # An already-wrapped GOT with an unrecognized cave is unsafe to chain.
+ for CHECK in "$BASE/hook/got_wrapper_base.bin" "$BASE/hook/got_wrapper_extended.bin"; do
+   if "$BB" cmp -s "$GOTTMP" "$CHECK"; then
+     rm -f "$GOTTMP"; log "HOOK_ABORT stale_or_foreign_wrapper pid=$P"; return 6
+   fi
+ done
+ write_mem "$P" "$C" "$H" || { rm -f "$GOTTMP"; return 7; }
+ write_mem "$P" $((C+ORIG_OFF)) "$GOTTMP" || { rm -f "$GOTTMP"; return 7; }
+ write_mem "$P" "$GOT_ADDR" "$W" || { rm -f "$GOTTMP"; return 9; }
+ same_mem "$P" "$GOT_ADDR" 4 "$W" || { write_mem "$P" "$GOT_ADDR" "$GOTTMP"; rm -f "$GOTTMP"; return 9; }
+ echo "$P $PROF" > /tmp/autoabc_hook.state; echo "$P $PROF" > /tmp/autoabc_bdpprog.pid
+ ORIGH="$(hexdump -v -e '1/4 "%08x"' "$GOTTMP" 2>/dev/null)"; rm -f "$GOTTMP"
+ log "GOT_HOOK_INSTALLED pid=$P profile=$PROF got=0x011d8e40 wrapper=$(printf '0x%08x' $((C+WRAP_OFF))) original=0x${ORIGH:-UNKNOWN} classify=BDMV_LR_0x00a1fb77_ISO_STRING capture=PHYSICAL_IPCD_FIRST_27 mode=GOT_PREPLAY"
+ return 0
+}
+log "$VERSION START pid=$SELF compatibility=SIGNATURE_GOT_AND_CAVE"
+LAST=""
+while :; do
+ P="$(find_pid)"; [ -n "$P" ] || { "$BB" usleep 10000 2>/dev/null || "$BB" sleep 1; continue; }
+ if [ "$P" != "$LAST" ]; then install_hook "$P"; R=$?; [ "$R" = 0 ] && LAST="$P" || LAST=""; [ "$R" = 10 ] && { "$BB" usleep 10000 2>/dev/null || :; }; fi
+ if [ "$LAST" = "$P" ] && [ -r "/proc/$P/comm" ]; then "$BB" sleep 1; else LAST=""; "$BB" usleep 10000 2>/dev/null || "$BB" sleep 1; fi
+done

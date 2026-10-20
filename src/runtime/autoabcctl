@@ -1,0 +1,77 @@
+#!/bin/sh
+VERSION="autoABC region control"
+ADDR_DEC=19089148
+ADDR_HEX="0x012346FC"
+
+find_pid() {
+    for p in /proc/[0-9]*; do
+        [ -r "$p/comm" ] || continue
+        n="$(cat "$p/comm" 2>/dev/null)"
+        if [ "$n" = "bdpprog.1" ]; then
+            echo "${p##*/}"
+            return 0
+        fi
+    done
+    return 1
+}
+
+read_bytes() {
+    dd if="/proc/$1/mem" bs=1 skip="$ADDR_DEC" count=2 2>/dev/null | hexdump -v -e '1/1 "%02x "'
+}
+
+region_name() {
+    case "$1" in
+        01) echo "A" ;;
+        02) echo "B" ;;
+        03) echo "C" ;;
+        ff|FF) echo "OFF/STOCK" ;;
+        *) echo "UNKNOWN" ;;
+    esac
+}
+
+PID="$(find_pid)"
+if [ -z "$PID" ]; then
+    echo "$VERSION"
+    echo "ERROR: bdpprog.1 not found"
+    exit 1
+fi
+
+if ! grep -qi '^011d8000-0127f000 .*w' "/proc/$PID/maps" 2>/dev/null; then
+    echo "$VERSION"
+    echo "ERROR: expected writable bdpprog.1 mapping not found for PID=$PID"
+    exit 1
+fi
+
+cmd="${1:-status}"
+case "$cmd" in
+    status)
+        bytes="$(read_bytes "$PID")"
+        set -- $bytes
+        CBR="$1"; CDR="$2"
+        echo "$VERSION"
+        echo "PID=$PID"
+        echo "CBR_ADDR=$ADDR_HEX"
+        echo "CBR=$CBR REGION=$(region_name "$CBR")"
+        echo "CDR=$CDR"
+        ;;
+    A|a)
+        printf '\001' | dd of="/proc/$PID/mem" bs=1 seek="$ADDR_DEC" count=1 conv=notrunc 2>/dev/null
+        exec "$0" status
+        ;;
+    B|b)
+        printf '\002' | dd of="/proc/$PID/mem" bs=1 seek="$ADDR_DEC" count=1 conv=notrunc 2>/dev/null
+        exec "$0" status
+        ;;
+    C|c)
+        printf '\003' | dd of="/proc/$PID/mem" bs=1 seek="$ADDR_DEC" count=1 conv=notrunc 2>/dev/null
+        exec "$0" status
+        ;;
+    off|OFF|stock|STOCK)
+        printf '\377' | dd of="/proc/$PID/mem" bs=1 seek="$ADDR_DEC" count=1 conv=notrunc 2>/dev/null
+        exec "$0" status
+        ;;
+    *)
+        echo "Usage: $0 {status|A|B|C|off}"
+        exit 2
+        ;;
+esac

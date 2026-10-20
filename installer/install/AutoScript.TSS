@@ -1,0 +1,8 @@
+#MTKAT 0.xx script
+
+SLEEPMS(1000)
+CLI(CLI_exec rm -f /tmp/autoABC-install.sh)
+CLI(CLI_exec cp /mnt/sd*/AutoScript/autoABC-install.sh /tmp/autoABC-install.sh)
+CLI(CLI_exec chmod 755 /tmp/autoABC-install.sh)
+CLI(CLI_exec /tmp/autoABC-install.sh)
+CLI(CLI_exec sync)

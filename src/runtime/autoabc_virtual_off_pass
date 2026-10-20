@@ -1,0 +1,81 @@
+#!/bin/sh
+# PSR20 PASS-only protection during STOCK virtual playback (ISO_BDMV=0).
+# Never chooses a region; never touches CBR/HBI; never runs in ISO_BDMV=1.
+VERSION="autoABC virtual PSR20 pass-through"
+BASE="/mnt/ubi_boot/autoABC"
+BB="/mnt/ubi_boot/jb_overlay/bin/busybox"
+[ -x "$BB" ] || BB="/bin/busybox"
+PIDFILE="$BASE/virtual_off_pass.pid"
+STATEFILE="/tmp/autoabc_psr20_hook.state"
+LOG="$BASE/virtual_off_pass.log"
+SELF=$$
+echo "$SELF" > "$PIDFILE"
+log() { echo "$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null) $*" >> "$LOG"; }
+cleanup() { P="$(cat "$PIDFILE" 2>/dev/null)"; [ "$P" = "$SELF" ] && rm -f "$PIDFILE"; }
+trap 'cleanup' 0
+trap 'exit 0' 1 2 15
+[ "$("$BASE/config.sh" get-iso 2>/dev/null)" = 0 ] || { log 'PASSGUARD_EXIT not_disabled'; exit 0; }
+virtual_source() {
+    if grep -q '^/dev/loop1 /mnt/iso ' /proc/mounts 2>/dev/null && [ -f /mnt/iso/BDMV/MovieObject.bdmv ]; then
+        echo ISO
+        return 0
+    fi
+    SRC="$("$BB" readlink /mnt/link 2>/dev/null)"
+    case "$SRC" in ''|/mnt/iso|/mnt/sr0|/mnt/disc_00_0) return 1;; esac
+    if [ -f "$SRC/BDMV/MovieObject.bdmv" ]; then echo BDMV; return 0; fi
+    return 1
+}
+mb_addr() {
+    set -- $(cat "$STATEFILE" 2>/dev/null)
+    P="$1"; PROF="$2"
+    case "$P" in ''|*[!0-9]*) return 1;; esac
+    [ "$(cat "/proc/$P/comm" 2>/dev/null)" = bdpprog.1 ] || return 1
+    [ -r "/proc/$P/mem" ] || return 1
+    case "$PROF" in
+        base) A=$((0x01c03c00+0x0fc));;
+        extended) A=$((0x01c11400+0x0fc));;
+        *) return 1;;
+    esac
+    return 0
+}
+readmb() { "$BB" dd if="/proc/$P/mem" bs=1 skip="$A" count=4 2>/dev/null | "$BB" hexdump -v -e '1/1 "%02x"' 2>/dev/null; }
+writemb() { "$BB" dd if="$BASE/hook/mailbox_$1.bin" of="/proc/$P/mem" bs=1 seek="$A" conv=notrunc 2>/dev/null; }
+# No physical disc inference. Only PASS/RESET of existing physical PSR20 gate.
+log "$VERSION START pid=$SELF"
+ACTIVE=0
+LAST_PID=""
+while :; do
+    TYPE="$(virtual_source)"
+    if [ -n "$TYPE" ]; then
+        if mb_addr; then
+            if [ "$ACTIVE" -eq 0 ] || [ "$LAST_PID" != "$P" ]; then
+                ACTIVE=1
+                LAST_PID="$P"
+                log "VIRTUAL_OFF_SOURCE type=$TYPE pid=$P"
+            fi
+            MB="$(readmb)"
+            case "$MB" in
+                00000080)
+                    if writemb PASS; then
+                        log "VIRTUAL_OFF_PSR20_PASS type=$TYPE pid=$P"
+                        "$BB" usleep 100000 2>/dev/null || "$BB" sleep 1
+                        if mb_addr && [ "$(readmb)" = ffffffff ]; then writemb reset || :; fi
+                    fi
+                    ;;
+                01000000|02000000|03000000)
+                    # A physical disc mailbox must not override a virtual Java PSR.
+                    writemb PASS || :
+                    ;;
+            esac
+        fi
+        "$BB" usleep 50000 2>/dev/null || "$BB" sleep 1
+    else
+        if [ "$ACTIVE" -eq 1 ]; then
+            if mb_addr && [ "$(readmb)" = ffffffff ]; then writemb reset || :; fi
+            log 'VIRTUAL_OFF_SOURCE_END reset_if_pass=YES'
+            ACTIVE=0
+            LAST_PID=""
+        fi
+        "$BB" usleep 200000 2>/dev/null || "$BB" sleep 1
+    fi
+done

@@ -1,0 +1,87 @@
+#!/bin/sh
+VERSION="autoABC PSR20 gate"
+BASE="/mnt/ubi_boot/autoABC"
+LOG="$BASE/psr20_hookd.log"
+PIDFILE="$BASE/psr20_hookd.pid"
+STATEFILE="/tmp/autoabc_psr20_hook.state"
+BB="/mnt/ubi_boot/jb_overlay/bin/busybox"; [ -x "$BB" ] || BB="/bin/busybox"
+NGET=$((0x002aefc0))
+ACCESS_PLT=$((0x000306f8))
+USLEEP_PLT=$((0x0003294c))
+BASE_CAVE=$((0x01c03c00))
+EXT_CAVE=$((0x01c11400))
+MB_OFF=$((0x0fc))
+DYN_LEN=16
+SELF="$$"; echo "$SELF" > "$PIDFILE"
+
+log(){ TS="$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null)"; [ -n "$TS" ] || TS=NO_DATE; echo "$TS $*" >> "$LOG"; }
+read_mem(){ P="$1"; A="$2"; N="$3"; O="$4"; "$BB" dd if="/proc/$P/mem" of="$O" bs=1 skip="$A" count="$N" 2>/dev/null; [ "$("$BB" wc -c < "$O" 2>/dev/null)" = "$N" ]; }
+write_mem(){ P="$1"; A="$2"; F="$3"; "$BB" dd if="$F" of="/proc/$P/mem" bs=1 seek="$A" conv=notrunc 2>/dev/null; }
+same_mem(){ P="$1"; A="$2"; N="$3"; F="$4"; T="/tmp/ra_psr_cmp_${SELF}"; read_mem "$P" "$A" "$N" "$T" || { rm -f "$T"; return 1; }; "$BB" cmp -s "$T" "$F"; R=$?; rm -f "$T"; return $R; }
+find_pid(){ for p in /proc/[0-9]*; do [ -r "$p/comm" ] || continue; [ "$(cat "$p/comm" 2>/dev/null)" = "bdpprog.1" ] && { echo "${p##*/}"; return 0; }; done; return 1; }
+prof_data(){
+ case "$1" in
+  base) C="$BASE_CAVE"; PATCH="$BASE/hook/patch_ngetpsr_base.bin" ;;
+  extended) C="$EXT_CAVE"; PATCH="$BASE/hook/patch_ngetpsr_extended.bin" ;;
+  *) return 1 ;;
+ esac
+}
+blob_is_ours(){
+ P="$1"; PROF="$2"; prof_data "$PROF" || return 1
+ same_mem "$P" "$C" "$MB_OFF" "$BASE/hook/psr20_gate_prefix.bin" || return 1
+ same_mem "$P" $((C+MB_OFF+DYN_LEN)) $((512-MB_OFF-DYN_LEN)) "$BASE/hook/psr20_gate_suffix.bin"
+}
+cave_zero(){ P="$1"; PROF="$2"; prof_data "$PROF" || return 1; same_mem "$P" "$C" 512 "$BASE/hook/zero512.bin"; }
+cave_usable(){ P="$1"; PROF="$2"; cave_zero "$P" "$PROF" && return 0; blob_is_ours "$P" "$PROF"; }
+installed_prof(){ P="$1"; PROF="$2"; prof_data "$PROF" || return 1; blob_is_ours "$P" "$PROF" || return 1; same_mem "$P" "$NGET" 4 "$PATCH"; }
+mailbox_reset(){ P="$1"; PROF="$2"; prof_data "$PROF" || return 1; write_mem "$P" $((C+MB_OFF)) "$BASE/hook/mailbox_reset.bin"; }
+restore_current(){
+ set -- $(cat "$STATEFILE" 2>/dev/null); P="$1"; PROF="$2"
+ case "$P" in ''|*[!0-9]*) return 0;; esac
+ [ "$(cat /proc/$P/comm 2>/dev/null)" = "bdpprog.1" ] || return 0
+ prof_data "$PROF" || return 0
+ if installed_prof "$P" "$PROF"; then
+   write_mem "$P" "$NGET" "$BASE/hook/orig_ngetpsr.bin" && log "PSR20_HOOK_RESTORED pid=$P profile=$PROF"
+ fi
+ rm -f "$STATEFILE"
+}
+cleanup(){ restore_current; P="$(cat "$PIDFILE" 2>/dev/null)"; [ "$P" = "$SELF" ] && rm -f "$PIDFILE"; }
+trap 'cleanup' 0
+trap 'exit 0' 1 2 15
+
+install_hook(){
+ P="$1"; [ -r "/proc/$P/mem" ] || return 2
+ if installed_prof "$P" base; then echo "$P base" > "$STATEFILE"; return 0; fi
+ if installed_prof "$P" extended; then echo "$P extended" > "$STATEFILE"; return 0; fi
+
+ # Verify exact supported player entry and libc PLT signatures. Unknown builds fail closed.
+ same_mem "$P" "$NGET" 16 "$BASE/hook/sig_ngetpsr_16.bin" || { log "PSR20_HOOK_ABORT ngetpsr_signature pid=$P"; return 3; }
+ same_mem "$P" "$ACCESS_PLT" 12 "$BASE/hook/sig_access_plt_12.bin" || { log "PSR20_HOOK_ABORT access_plt_signature pid=$P"; return 3; }
+ same_mem "$P" "$USLEEP_PLT" 12 "$BASE/hook/sig_usleep_plt_12.bin" || { log "PSR20_HOOK_ABORT usleep_plt_signature pid=$P"; return 3; }
+
+ PROF=""
+ if cave_usable "$P" base; then PROF=base
+ elif cave_usable "$P" extended; then PROF=extended
+ else log "PSR20_HOOK_ABORT no_safe_secondary_cave pid=$P"; return 4
+ fi
+ prof_data "$PROF"
+ write_mem "$P" "$C" "$BASE/hook/psr20_gate.bin" || return 5
+ mailbox_reset "$P" "$PROF" || return 5
+ write_mem "$P" "$NGET" "$PATCH" || return 6
+ installed_prof "$P" "$PROF" || { write_mem "$P" "$NGET" "$BASE/hook/orig_ngetpsr.bin"; return 6; }
+ echo "$P $PROF" > "$STATEFILE"
+ log "PSR20_HOOK_INSTALLED pid=$P profile=$PROF entry=0x002aefc0 cave=$(printf '0x%08x' "$C") mailbox=$(printf '0x%08x' $((C+MB_OFF))) physical_only=YES timeout_ms=10000 fail_open=YES"
+ return 0
+}
+
+log "$VERSION START pid=$SELF mode=PHYSICAL_BDJ_PSR20_SYNCHRONOUS_GATE"
+LAST=""
+while :; do
+ P="$(find_pid)"
+ [ -n "$P" ] || { "$BB" usleep 5000 2>/dev/null || "$BB" sleep 1; continue; }
+ if [ "$P" != "$LAST" ]; then
+   install_hook "$P"; R=$?
+   [ "$R" = 0 ] && LAST="$P" || LAST=""
+ fi
+ if [ "$LAST" = "$P" ] && [ -r "/proc/$P/comm" ]; then "$BB" sleep 1; else LAST=""; "$BB" usleep 5000 2>/dev/null || "$BB" sleep 1; fi
+done
