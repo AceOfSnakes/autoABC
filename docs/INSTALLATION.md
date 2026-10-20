@@ -2,11 +2,11 @@
 
 [Back to main README](../README.md)
 
-**Supported target:** original OPPO UDP-203 with RU-JB 65-0131, an operational jailbreak overlay, a running compatible `bdpprog.1` and USB AutoScript support. No other firmware or device is cleared for this procedure.
+**Supported target:** OPPO UDP-203 with RU-JB 65-0131, an operational jailbreak overlay, a running compatible `bdpprog.1` and USB AutoScript support. The installer verifies exact code signatures and rejects incompatible environments.
 
 ## Before touching the player
 
-1. Confirm the model is an **original UDP-203**. Check firmware under the player's Device Setup > Firmware Information menu; the supported modified environment is **RU-JB 65-0131**, not merely the ordinary official 65-0131 version number.
+1. Confirm the model is an **OPPO UDP-203**. Check firmware under the player's Device Setup > Firmware Information menu; the supported modified environment is **RU-JB 65-0131**, not merely the ordinary official 65-0131 version number.
 2. Make and verify your own backup/recovery path for the existing environment. In particular, the jailbreak overlay's `brick_monitor` must work, must not be a symlink, and cannot be an unknown nested third-party wrapper.
 3. Stop any playback, eject the disc, and make sure no other mod-installation USB sticks are attached. An incompatible live firmware-code signature causes an intentional abort; do not bypass it.
 4. On your computer, verify the downloaded ZIP checksum against the `SHA256SUMS` provided for this release:
@@ -22,7 +22,7 @@ sha256sum autoABC-1.0.0-install.zip
 Expected SHA-256:
 
 ```text
-c1fdddfcf88e4bebb3d200e58c7724c242c1326ce538cffad128b21067444dff
+2f57b16aa8b779265c5fe9561cf2a9c1b535837fad2c7fd5cb07109264cafe44
 ```
 
 ## Prepare the USB stick
@@ -38,7 +38,6 @@ USB_ROOT/
 │   ├── config.ini
 │   └── autoABC/...
 ├── CHECK_READONLY.sh
-├── README.md
 └── SHA256SUMS_RELEASE
 ```
 
@@ -63,7 +62,7 @@ Change the value to `0` only if you want automatic region switching for physical
 5. Remove the USB stick **before another start**. Fully power-cycle the player.
 6. Verify `config.ini`, runtime status and representative physical/media playback tests. See [Verification](VERIFICATION.md).
 
-The installer checks four exact live player instructions **before changing the existing installation**. It also refuses unidentified or ambiguous boot-monitor ownership and unexpected payload hashes. The final hardened ZIP has been verified offline, but this particular packaging still awaits an end-to-end live USB acceptance run.
+The installer checks four exact live player instructions **before changing the existing installation**. It also refuses unidentified or ambiguous boot-monitor ownership and unexpected payload hashes. autoABC 1.0.0 is confirmed working by the maintainer. The README-free ZIP keeps every functional file unchanged; its updated archive manifest and new outer packaging have been verified offline.
 
 ## Configuration after installation
 

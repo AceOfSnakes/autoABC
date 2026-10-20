@@ -1,13 +1,14 @@
 # Changelog
 
-## 1.0.0 (proposed first public release)
+## 1.0.0
 
-- Automatic Blu-ray region selection A/B/C for supported physical HDMV and BD-J titles.
-- Optional region selection for Blu-ray ISO and BDMV folders; `ISO_BDMV=1` by default.
-- Physical BD-J PSR20 handling and playback-session restoration behavior.
-- Strict device/firmware signature validation and guarded early-boot installation.
-- Independent USB installation and uninstallation packages.
-- Editable USB configuration, per-file payload verification and read-only post-install checker.
-- No cache feature.
+- Automatic Blu-ray region A/B/C selection for physical HDMV and BD-J playback.
+- Seven allowed-region combinations implemented with conservative fallback for ambiguous cases.
+- Optional region selection for Blu-ray ISO and BDMV folders (`ISO_BDMV=1` by default).
+- PSR20-aware physical BD-J handling and session-based restoration.
+- Guarded jailbreak-overlay installation, signature validation and separate USB uninstall.
+- Single editable option (`ISO_BDMV`), per-file integrity verification and post-install read-only checker.
+- No persistent disc cache.
+- Public release archives omit the redundant top-level README; documentation lives in this repository.
 
-**Release acceptance:** Final sealed ZIPs passed offline integrity checks, but the complete final USB install/uninstall path remains pending live-hardware sign-off. No earlier development versions are public release channels.
+See [Release notes](docs/RELEASE_NOTES_1.0.0.md) and [Verification](docs/VERIFICATION.md).

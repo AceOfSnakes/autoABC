@@ -1,21 +1,21 @@
 # Frequently asked questions
 
-**Does autoABC change my permanent Blu-ray region?**  It operates on the supported player's *runtime* selection and attempts to restore the stock value after the relevant playback session. It does not claim to change the factory DVD region or replace the underlying firmware.
+**Which player and firmware do I need?**  An **OPPO UDP-203 with RU-JB 65-0131 jailbreak firmware** and working jailbreak overlay. The installer checks specific live code signatures and startup ownership.
 
-**Is `ISO_BDMV=1` the default?**  Yes. ISO and BDMV automatic detection are on by default and can be turned off with `ISO_BDMV=0`.
+**Does autoABC change my permanent Blu-ray region?**  It selects a compatible region during playback and is designed to restore the configured stock state afterward. It does not change the DVD region.
 
-**Will disabling ISO/BDMV disable ISO playback?**  No. It disables only autoABC's virtual-media region handling. Ordinary firmware playback availability does not change.
+**Are all seven region masks supported?**  Yes, all nonempty A/B/C combinations are implemented. Hardware evidence exists for A, B, A+B and B+C; synthetic tests cover C-only and A+C. No worldwide disc-compatibility guarantee is possible. [Details](REGION_SUPPORT.md).
 
-**Why can some BD-J ISOs open more slowly?**  Java callgraph analysis may run after other detectors return an inconclusive result. An observed example took around one second of detector work. It is not a deterministic delay for all discs.
+**Does `ISO_BDMV=1` mean ISO/BDMV auto-region is enabled?**  Yes, that is the default. Change to `ISO_BDMV=0` to turn off only virtual-media automatic region detection.
 
-**Does autoABC remember a disc for the next time?**  No. There is no cache or cache option.
+**Does `ISO_BDMV=0` disable ISO playback?**  No. It leaves the player's ordinary virtual-media playback available and avoids autoABC processing for those sources.
 
-**Is every Blu-ray title supported?**  No. Disc logic varies, including custom BD-J region checks and ambiguous multi-region masks. We report tested cases and unknowns separately.
+**Why can some BD-J ISOs open more slowly?**  Complex Java callgraph analysis sometimes takes several hundred milliseconds. A measured title needed roughly one second of detector work. It is not a fixed delay. [Measurements](research/VIRTUAL_MEDIA_TIMING.md).
 
-**Can this be used on a UDP-205 or a clone?**  Not with this release. Only the original UDP-203 with the specified RU-JB 65-0131 setup is supported; the installer also checks actual live signatures.
+**Does autoABC maintain a per-disc cache?**  No; no cache feature or setting exists in 1.0.0.
 
-**Is this a public firmware image or a jailbreak installer?**  No. You must already have a suitable jailbroken environment. No full proprietary OPPO firmware image is supplied.
+**Are the release ZIPs missing documentation?**  Intentionally: the README and guides are in this repository, so the two small AutoScript ZIPs carry only installation or removal files, checks and manifests.
 
-**What if the optical tray opens during install/uninstall?**  That is feedback only; verify the `INSTALLED` / `UNINSTALLED` result file.
+**Is this a jailbreak-firmware installation?**  No. The required RU-JB firmware and working overlay must already be installed.
 
-**Why is a GitHub source archive different from the release ZIP?**  GitHub creates repository snapshots automatically. autoABC uses distinct USB AutoScript assets; extracting a source snapshot to your OPPO is **not** an installation procedure.
+**What if the optical tray opens but there is no result file?**  Tray motion alone does not demonstrate success. Read `autoABC.log` or `autoABC-uninstall.log` and follow [Troubleshooting](TROUBLESHOOTING.md).

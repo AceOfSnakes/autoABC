@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Offline verification of the TWO sealed autoABC 1.0.0 release archives.
+"""Offline verification of the TWO README-free autoABC 1.0.0 release archives.
 
 Does not execute any OPPO code or alter either input ZIP.
 Not a proof of hardware compatibility or source-to-binary reproducibility.
@@ -11,8 +11,8 @@ import sys
 import zipfile
 
 EXPECTED = {
- 'install': {'hash': 'c1fdddfcf88e4bebb3d200e58c7724c242c1326ce538cffad128b21067444dff', 'files': 53, 'manifest': 51},
- 'uninstall': {'hash': 'd13fa93bfd10cb21b4afc29bc272864c22a780ad09e767520cdeda5816469dd8', 'files': 5, 'manifest': 4},
+ 'install': {'hash': '2f57b16aa8b779265c5fe9561cf2a9c1b535837fad2c7fd5cb07109264cafe44', 'files': 52, 'manifest': 50},
+ 'uninstall': {'hash': 'aa15f85d37eac272fbffad3d27800c1efc220657cda794876e25b827836c7862', 'files': 4, 'manifest': 3},
 }
 
 def hash_bytes(data: bytes) -> str:
@@ -52,6 +52,7 @@ def verify_one(p: pathlib.Path, kind: str, repo: pathlib.Path|None=None) -> None
     with zipfile.ZipFile(p) as z:
         names=z.namelist()
         require(len(names)==expected['files'], 'unexpected ZIP entry count')
+        require('README.md' not in names, 'unexpected README bundled into release archive')
         require(len(names)==len(set(names)), 'duplicate ZIP entry names')
         for i in z.infolist():
             assert_safe_member(i.filename)
@@ -61,6 +62,9 @@ def verify_one(p: pathlib.Path, kind: str, repo: pathlib.Path|None=None) -> None
         require(z.testzip() is None, 'ZIP CRC failure')
         print(f'  {kind} archive SHA256, ZIP count {len(names)} and CRC OK')
         verify_manifest(z,'SHA256SUMS_RELEASE',expected['manifest'])
+        manifest_names={line[66:] for line in z.read('SHA256SUMS_RELEASE').decode('ascii').splitlines()}
+        unpinned={'SHA256SUMS_RELEASE'} | ({'AutoScript/config.ini'} if kind=='install' else set())
+        require(manifest_names==set(names)-unpinned, 'release manifest does not cover all non-editable archive members')
         tss=z.read('AutoScript/AutoScript.TSS')
         require(tss.startswith(b'#MTKAT'), 'missing MTKAT script marker')
         require(b'\r\n' in tss and tss.replace(b'\r\n',b'').find(b'\n')==-1, 'AutoScript.TSS has non-CRLF line endings')

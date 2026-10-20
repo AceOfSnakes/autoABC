@@ -4,17 +4,17 @@ Use the **standalone** `autoABC-1.0.0-uninstall.zip`, not the installer ZIP and 
 
 ## Uninstall via USB AutoScript
 
-1. Stop playback, eject the disc and fully power down the original UDP-203.
+1. Stop playback, eject the disc and fully power down the OPPO UDP-203.
 2. Remove any previous `AutoScript/` directory from the USB stick; extract **only** the uninstall ZIP into the USB root.
 3. Confirm the root contains `AutoScript/AutoScript.TSS`, `AutoScript/autoABC-uninstall.sh` and `AutoScript/autoABC-uninstall.id`.
 4. Insert the USB and start the player from complete power-off.
 5. Verify `autoABC-uninstall-result.txt` at the USB root contains **`UNINSTALLED`**. The tray may open as an extra indicator, but that alone is insufficient.
 6. Remove the USB and fully power-cycle again.
 
-Expected ZIP SHA-256:
+SHA-256 of the README-free release ZIP:
 
 ```text
-d13fa93bfd10cb21b4afc29bc272864c22a780ad09e767520cdeda5816469dd8
+aa15f85d37eac272fbffad3d27800c1efc220657cda794876e25b827836c7862
 ```
 
 ## What the uninstaller intends to change
@@ -25,7 +25,7 @@ d13fa93bfd10cb21b4afc29bc272864c22a780ad09e767520cdeda5816469dd8
 - Leaves unrelated jailbreak overlay content and unrelated mods untouched.
 - Does not depend on a functioning `bdpprog.1` player signature, so a broken playback process should not itself block removal.
 
-These are code-intended guarantees backed by offline tests; the **final separate USB uninstaller requires a fresh real-player acceptance run** before public release.
+autoABC 1.0.0 is reported working by the maintainer. The README-free repacking keeps the uninstaller launcher and script byte-identical; the revised outer ZIP has been verified offline.
 
 ## Failure or no result file
 

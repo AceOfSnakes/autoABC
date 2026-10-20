@@ -2,9 +2,9 @@
 
 ## Two observable region states
 
-A physical Blu-ray Disc can use BD-J to read the player's region by requesting **PSR20**. The actual player's global Blu-ray region indicator (CBR) and the value supplied to the checked PSR20 getter are different states. During earlier real-disc testing, a known BD-J *Avatar* example received a compatible B through the PSR20 mailbox while global status later showed STOCK. Playback still worked. That was part of the original restoration policy, **not by itself a false region decision**. [D3], [D4].
+A physical Blu-ray Disc can use BD-J to read the player's region by requesting **PSR20**. The actual player's global Blu-ray region indicator (CBR) and the value supplied to the checked PSR20 getter are different states. During earlier real-disc testing, a known BD-J *Avatar* example received a compatible B through the PSR20 mailbox while global status later showed STOCK. Playback still worked. That was part of an earlier restoration policy, **not by itself a false region decision**.
 
-The engineering goal for the current physical BD-J fallback was to keep the selected global runtime region during confirmed playback, then restore STOCK when the playback session really ends. This behavior was tested on an original OPPO with *Avatar*, including PLAY, STOP/HOME and replay. Do not extrapolate that a single decoder-state signature perfectly distinguishes every BD-J menu or every other title.
+The engineering goal for the current physical BD-J fallback was to keep the selected global runtime region during confirmed playback, then restore STOCK when the playback session really ends. This behavior was tested on an OPPO with *Avatar*, including PLAY, STOP/HOME and replay. Do not extrapolate that a single decoder-state signature perfectly distinguishes every BD-J menu or every other title.
 
 ## Conservative HBI-based session heuristic
 
@@ -16,11 +16,11 @@ The final physical-disc shell logic observes a firmware playback-state block aro
 - Fall back to a roughly **250-ms** grace restoration policy if HBI is unavailable at entry or repeatedly unreadable.
 - Handle EJECT / disappearance of physical disc aliases independently, restoring global STOCK and resetting the session mailbox as needed.
 
-This heuristic reduced premature global restoration during tested physical BD-J playback without inserting the same behavior into ordinary HDMV or ISO/BDMV code paths. [D4, physical playback-state investigation].
+This heuristic reduced premature global restoration during tested physical BD-J playback without inserting the same behavior into ordinary HDMV or ISO/BDMV code paths. [development notes, physical playback-state investigation].
 
 ## Remaining uncertainty
 
-Decoder fields are not an official title-state API. A background video/menu can produce PLAY-like HBI values after HOME; thread counts differ among discs. The archived evidence explicitly notes such a post-HOME PLAY-like state, so a broad guarantee of correct menu behavior would be unjustified. The sealed final installer has not received a complete hardware install/uninstall acceptance run, even though the relevant standalone physical-playback behavior was confirmed on the original player.
+Decoder fields are not an official title-state API. A background video/menu can produce PLAY-like HBI values after HOME; thread counts differ among discs. The archived evidence explicitly notes such a post-HOME PLAY-like state, so a broad guarantee of correct menu behavior would be unjustified. The maintainer reports the final 1.0.0 version working. The subsequent README-free archive repacking has been verified offline without new on-device execution.
 
 ## What a meaningful new test should record
 
@@ -30,4 +30,4 @@ Decoder fields are not an official title-state API. A background video/menu can 
 - Whether another background player/menu state can cause a stale B reassertion.
 - No unexpected or cumulative wrapper hooks after restart.
 
-Sources: [D3] PSR20/CBR distinction and lifecycle; [D4] hardware HBI trace, confirmed behavior and unresolved menu-state caveats.
+Supporting evidence: [Test evidence](TEST_EVIDENCE.md), [Evidence register](EVIDENCE_REGISTER.md).

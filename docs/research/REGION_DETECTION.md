@@ -1,40 +1,23 @@
-# Blu-ray region detection, allowed masks and false positives
+# Blu-ray region masks and detector design
 
-The key discovery was that *finding a reference to a region register is not the same as proving a region lock*. Blu-ray titles may read PSR20 to choose languages, warnings, menus or other behavior even when all regions play. autoABC therefore distinguishes a verified A/B/C decision from UNKNOWN rather than forcing a region on every Java or HDMV program. [D1]-[D3].
+The key engineering lesson is that **finding a reference to a region register does not prove a disc has an active region lock**. A disc can read PSR20 for localization, warnings or other behavior without forbidding playback in a given region. autoABC distinguishes a concrete A/B/C restriction from an ambiguous or absent check.
 
-## Region labels and masks
+## Masks and player values
 
-Blu-ray region masks use three allowed-region bits in the tested detection pathways:
+Blu-ray allowed-region sets are represented internally as three bits: **1=A, 2=B, 4=C**. The combinations are A(1), B(2), C(4), A+B(3), A+C(5), B+C(6), A+B+C(7). The selected player region uses A, B or C; **an allowed-region mask is not the selected region itself**. See the complete [support matrix](../REGION_SUPPORT.md).
 
-| Bit | Region |
-| --- | --- |
-| 1 | A |
-| 2 | B |
-| 4 | C |
+The Blu-ray player's PSR20 region register is commonly documented as 1 (A), 2 (B), 4 (C). The separate global runtime CBR state uses its own representation and must not be conflated with mask bits. [Technical references](../SOURCES.md).
 
-Examples: `3 = A+B`, `5 = A+C`, `6 = B+C`, `7 = A+B+C`. A mask is not a one-hot region and does not mean that the selected runtime should be set to its numeric value. A compatible region is selected when necessary. If no meaningful restriction is detected, the mod should preserve or restore normal stock behavior rather than claim that everything was bypassed.
+## Physical HDMV / MovieObject checks
 
-## HDMV / MovieObject analysis
+`MovieObject.bdmv` may express a restriction through direct region comparisons, branching conditions, exclusion patterns, masks or sequential fallback branches. A byte-string scan can miss the actual logic or misinterpret a harmless literal; the parser therefore examines the control-flow meaning and validates uncertain results conservatively. A title allowed in A+B can select A rather than being incorrectly classified as the numeric region "3".
 
-`MovieObject.bdmv` and associated control flow can express a region check as direct comparisons, masked checks, sequential branches, exclusion conditions or indirect paths. Simple byte-string detection can produce both false negatives and false positives. The engineering work introduced a native semantic analyzer and HDMV validator/fallback. `preplay_virtual.sh` first uses the fast detector; a conflicting concrete HDMV answer can override a concrete core answer. When unresolved, the BD-J path can be consulted as appropriate. [D1], [D2].
+## BD-J and PSR20 checks
 
-## BD-J analysis
+The BD-J path analyzes JAR configuration and reachable Java bytecode / callgraphs. A name or method reference to a region check can exist without an active lock, especially in unused branches or generic frameworks. For applicable physical BD-J cases the PSR20 handler can supply the selected A/B/C identity while playback continues. Physical and virtual media use different lifecycle synchronization; see [Physical BD-J](PHYSICAL_BDJ.md) and [Virtual-media timing](VIRTUAL_MEDIA_TIMING.md).
 
-The native BD-J analyzer examines properties and JAR bytecode/callgraphs for reachable region logic, including comparisons with PSR20. A region string that exists in an unreachable class is not adequate evidence; the testing corpus deliberately included misleading Java checks and benign PSR20 usage. BD-J applications can be region restricted in more than one region and can defer the check until after disc navigation begins.
+## False-positive controls and fallback
 
-A separate PSR20 runtime mailbox allows the checked firmware getter to return a compatible A/B/C value on demand. The global status register can independently display STOCK. This is not the same as changing the persistent player setting. See [Physical BD-J](PHYSICAL_BDJ.md).
+Negative controls included region-aware-looking Java that ultimately allowed A+B+C, disc code that read PSR20 only for nonblocking behavior, unreachable checker branches and ambiguous cases classified as UNKNOWN. These prevent an automatic region change from being triggered by any incidental PSR20 reference.
 
-## Conservative rules
-
-1. Keep A/B/C mask semantics explicit and separate them from the raw byte encoding of runtime CBR.
-2. Avoid changing regions when the detector finds no justified restriction.
-3. Avoid treating a missing/rejected parser result as "region free".
-4. Recheck source identity and process ownership before applying a result.
-5. Keep physical disc and virtual media handling separate.
-6. Treat unsupported Java control flows as limitations, not as evidence that the restriction has been removed.
-
-## Negative controls used in research
-
-Some discs include region-check-looking Java bytecode but do not enforce a region lock, some use PSR20 for localization, and others keep disabled checks as leftovers. Specific regression controls included a season-disc comparison from *LOST*, a *Twin Peaks* Java title and several other UNKNOWN cases. [D1] The aim was to minimize accidental region changes, not to maximize the number of strings matched.
-
-References: [D1] "Disc-lock families", "False-positive/no-lock families", "Native Java core"; [D2] "Detector architecture"; [D3] "Core/HDMV/BD-J".
+**Synthetic tests include C-only and A+C detection; no distinct physical disc pass was documented for those combinations.** Hardware evidence covers A-only, B-only, A+B and B+C. [Test evidence](TEST_EVIDENCE.md) and [Evidence register](EVIDENCE_REGISTER.md).

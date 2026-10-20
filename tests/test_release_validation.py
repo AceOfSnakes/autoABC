@@ -17,7 +17,7 @@ class TestOfflineValidation(unittest.TestCase):
                 v.assert_safe_member(name)
     def test_hash_pins_present(self):
         self.assertEqual(len(v.EXPECTED['install']['hash']),64)
-        self.assertEqual(v.EXPECTED['install']['files'],53)
-        self.assertEqual(v.EXPECTED['uninstall']['files'],5)
+        self.assertEqual(v.EXPECTED['install']['files'],52)
+        self.assertEqual(v.EXPECTED['uninstall']['files'],4)
 
 if __name__=='__main__': unittest.main()

@@ -54,4 +54,4 @@ With `ISO_BDMV=0`, autoABC intentionally does not enable those virtual region ho
 - Hard-coded exact signature samples are safeguards, but not proof that every custom firmware image is compatible.
 - Physical and virtual playback can overlap at the UI layer; unsupported mixed-source edge cases still need hardware testing.
 
-Sources: [D1] original runtime work; [D2] virtual preplay; [D3] PSR20/restore; [D4] final mode and HBI implementation. See [Evidence register](EVIDENCE_REGISTER.md).
+Supporting project evidence: [Evidence register](EVIDENCE_REGISTER.md), [Development history](DEVELOPMENT_HISTORY.md).

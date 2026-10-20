@@ -1,17 +1,25 @@
-# autoABC 1.0.0 - proposed release notes
+# autoABC 1.0.0 - Release Notes
 
-**Automatic Blu-ray region A/B/C selection for the original OPPO UDP-203 on RU-JB 65-0131.**
+Automatic Blu-ray Region **A/B/C** selection for the **OPPO UDP-203 with RU-JB 65-0131 jailbreak firmware**.
 
-This release supports physical HDMV and BD-J Blu-ray region selection, with separately configurable ISO and BDMV support. **`ISO_BDMV=1` is the default**; use `ISO_BDMV=0` if you prefer not to run automatic region detection for ISO/BDMV playback. Some BD-J virtual media may take longer to initialize while the region is analyzed. The mod has no cache.
+## Highlights
 
-### Download files
+- Physical **HDMV and BD-J** Blu-ray region selection, including PSR20-aware BD-J handling.
+- **All seven A/B/C region combinations** represented by the detection/selection logic; live and synthetic coverage documented separately in the [region-support matrix](REGION_SUPPORT.md).
+- Optional ISO and BDMV automatic region selection, with **`ISO_BDMV=1` enabled by default**. Set `ISO_BDMV=0` to avoid optional BD-J virtual-media detection delays while retaining physical-disc auto-region.
+- Playback-session region handling, safe restoration, conservative detection and no persistent disc cache.
+- Firmware signature checks, independent AutoScript install/uninstall packages and an included read-only status checker.
 
-- `autoABC-1.0.0-install.zip` - standalone USB AutoScript installation or update.
-- `autoABC-1.0.0-uninstall.zip` - separate USB AutoScript removal and boot-monitor restoration.
-- `SHA256SUMS` - authenticates the byte identities of these two ZIPs.
+## Release downloads
 
-Extract the selected ZIP **to USB root** with `AutoScript/` directly under that root. **Never mix both packages on one stick.** Installation reports success in `autoABC-result.txt` with `INSTALLED`; uninstall reports `autoABC-uninstall-result.txt` with `UNINSTALLED`. Remove USB and perform a full power cycle after either operation. See README for complete instructions and restrictions.
+- `autoABC-1.0.0-install.zip` — USB installer / reinstaller.
+- `autoABC-1.0.0-uninstall.zip` — USB uninstaller.
+- `SHA256SUMS` — SHA-256 fingerprints for both archives.
 
-**Compatibility:** Original OPPO UDP-203 with supported RU-JB 65-0131 environment and four matching live code signatures only. No claim for stock firmware, UDP-205, clones or unrelated firmware modifications. Runtime hooks and early-boot changes are at your own risk.
+Both ZIPs intentionally contain **no bundled README**. Extract one ZIP to a clean USB root with `AutoScript/` directly at the root. Never combine installer and uninstaller contents on one stick. See the [README](../README.md) and [Installation](INSTALLATION.md).
 
-**Publication notice (remove only after actual sign-off):** Final sealed packages have passed offline validation, but live-device final USB install/uninstall acceptance and redistribution-rights clearance remain pending. Do not describe this as a fully hardware-certified public release until those items are resolved.
+## Compatibility and limitations
+
+Requires the stated jailbreak firmware and successful live signature/boot-wrapper checks. All standard region types are addressed by the implementation, but playback of every Blu-ray pressing worldwide is **not guaranteed**. C-only and A+C have synthetic rather than separately documented physical-disc evidence. autoABC does not alter DVD region coding or bypass copy protection.
+
+The maintainer has confirmed the working autoABC 1.0.0 functionality. This README-free packaging revision retains every functional file's bytes and has been independently verified offline; it does not claim a separate hardware execution of the newly repacked outer ZIPs. See [Verification](VERIFICATION.md).

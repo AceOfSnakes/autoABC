@@ -1,40 +1,38 @@
-# Verification and acceptance status
+# Verification and release integrity
 
-This page distinguishes **what has been checked on a computer** from **what still needs confirmation on an original player**.
+## Playback and functional status
 
-## Verified offline for the sealed 1.0.0 archives
+The maintainer has confirmed that **autoABC 1.0.0 works** on the supported OPPO UDP-203 jailbreak environment. Development records also document physical HDMV/BD-J testing, virtual-media use, and region-selection / restoration behavior on representative titles.
 
-- Installer and uninstaller archive SHA-256 values match the nominated final sources.
-- ZIP CRC verification, safe member paths, declared file counts and internal per-file manifests pass.
-- All 44 installed immutable runtime files match their manifest; user-editable `config.ini` is the 45th installed file and is excluded by design.
-- Install AutoScript and uninstall AutoScript launch files are separate; uninstaller MTK command lines retain CRLF.
-- Default installer config is `ISO_BDMV=1`, with no cache setting.
-- Shell scripts are present; static parser checks are recorded in the separate handoff QA report.
-- Original distribution ZIP bytes are unchanged by this GitHub handoff.
+The two public release ZIPs were later **repacked only to remove the redundant top-level `README.md`**. Every other payload file — including AutoScript launchers, runtime scripts, native components and the editable config template — is **byte-identical** to the working submitted ZIPs. `SHA256SUMS_RELEASE` is the sole edited retained ZIP member, and it now omits the removed README. These new archive envelopes have passed offline verification; no separate claim is made that the new ZIP envelopes themselves were booted from USB after repacking.
 
-Offline verification cannot demonstrate that the player's USB AutoScript executes, a proprietary firmware process matches at boot time, or an early-boot restoration truly works on hardware.
+## Archive fingerprints
 
-## Not yet documented as passed on the **final hardened USB archives**
+```text
+2f57b16aa8b779265c5fe9561cf2a9c1b535837fad2c7fd5cb07109264cafe44  autoABC-1.0.0-install.zip
+aa15f85d37eac272fbffad3d27800c1efc220657cda794876e25b827836c7862  autoABC-1.0.0-uninstall.zip
+```
 
-- Install the exact sealed ZIP from USB on the target original UDP-203 and observe `INSTALLED`.
-- Full boot after removing the installer USB; status and read-only checker pass.
-- Physical BD-J and HDMV playback, STOP/HOME/EJECT and replay on representative discs.
-- Virtual ISO/BDMV playback with `ISO_BDMV=1` and unaffected native virtual playback with `ISO_BDMV=0`.
-- The uninstaller USB starts and reports `UNINSTALLED`, with exact `brick_monitor` restoration and no collateral damage.
-- Reinstall after uninstall; repeat installation and config updates without wrapper nesting.
+## Verified on a computer for the README-free ZIPs
 
-Prior development demonstrated relevant playback functions on the original hardware. Those checks **do not** automatically sign off the new final installer/uninstaller ZIP pair.
+- Both archive CRC checks and path/symlink safety checks pass.
+- The installer has **52 entries** with **50/50** outer manifest hashes; the uninstaller has **4 entries** with **3/3** outer manifest hashes.
+- All **44/44** hashed immutable runtime files match the nested manifest. The 45th installed runtime file is the user-editable `config.ini`.
+- Default `AutoScript/config.ini` contains exactly `ISO_BDMV=1` and no cache option.
+- The AutoScript launchers, `AutoScript.TSS` line endings and all executable payload bytes match the working inputs.
+- No `README.md` is present inside either ZIP.
+- The repository's source snapshot has been checked against the corresponding packaged shell scripts.
 
-## Post-install read-only check
+## Optional post-install inspection
 
-Copy `CHECK_READONLY.sh` from the install ZIP root to `/tmp/CHECK_READONLY.sh` on the OPPO and execute:
+After boot, experienced users can use `CHECK_READONLY.sh` from the installer ZIP (a read-only **post-installation** check, not a separate compatibility-check installer):
 
 ```sh
 sh /tmp/CHECK_READONLY.sh
 ```
 
-It reads on-device checksums, mode, expected processes and bootstrap ownership. Expected terminal status: `READONLY_CHECK=PASS`. It is not an installer, not an uninstalled-device preflight and not universal firmware certification.
+The expected terminal marker is `READONLY_CHECK=PASS`; transfer the file to `/tmp` before running it. The script checks installed hashes, config, status and launcher ownership without installing anything.
 
-## Release criteria
+## Limits
 
-Publish only when the project owner has (1) verified redistribution rights for every release asset and (2) recorded the final-device acceptance run. The private GitHub handoff also supplies a separately maintained hardware acceptance checklist; it is not a public repository file.
+Offline checks cannot prove that all disc editions will play, or that archive repacking has been re-tested through an actual USB boot. Before publishing binaries, a separate review of redistribution rights for native/hook components is also prudent. Technical playback tests and synthesized region-mask checks are described in [Region support](REGION_SUPPORT.md) and [Test evidence](research/TEST_EVIDENCE.md).

@@ -1,27 +1,26 @@
-# Compatibility and known limitations
+# Compatibility and limitations
 
-| Item | Status |
+| Requirement | Status |
 | --- | --- |
-| Original OPPO UDP-203 | Target platform |
-| RU-JB 65-0131 environment | Required, plus four matching live signatures |
-| Live process `bdpprog.1` | Required during installation |
-| Operating jailbreak overlay / `brick_monitor` | Required |
-| Stock OPPO 65-0131 firmware without compatible jailbreak | **Not supported** |
-| UDP-205, other models or clone media players | **Not supported / unverified** |
-| Arbitrary modified player binaries or unknown early-boot wrappers | **Unsupported; refuse rather than guess** |
-| Blu-ray physical HDMV / BD-J | Supported pathways, disc-specific results vary |
-| ISO / BDMV automatic detection | Optional; enabled by default |
-| DVD region changes | Not part of autoABC |
-| Region-free behavior on all titles | Not guaranteed |
+| **OPPO UDP-203 with RU-JB 65-0131 jailbreak firmware** | Required environment |
+| Four matching live firmware-code signatures | Required; installer refuses an unexpected signature |
+| Working jailbreak overlay and early-boot launcher | Required |
+| Compatible live `bdpprog.1` process | Required for installation validation |
+| USB AutoScript support | Required for the packaged installer and uninstaller |
+| Physical HDMV / BD-J Blu-ray | Included |
+| ISO / BDMV region detection | Optional; default enabled |
+| DVD region switching | Not provided |
 
-There is no firmware flash in this installer, but runtime process-memory writes and overlay early-boot modification are substantial changes. Matching the displayed firmware string alone is not enough. The installer checks four known code signatures and aborts if anything needed is absent, ambiguous or different.
+**A matching firmware version display alone is not a guarantee of compatibility.** The installer performs exact code-signature checks, verifies the runtime payload and inspects the current boot-wrapper ownership. It refuses mismatches or ambiguous ownership rather than guessing.
+
+This is not a firmware update. It changes runtime player-memory state and integrates with the jailbreak overlay's early-boot startup. A recovery plan is recommended before installation.
 
 ## Playback limitations
 
-- HDMV and BD-J do not implement region restrictions identically. Some BD-J titles ask for the system's PSR20 region during playback; others use different logic. A conservative `UNKNOWN` result is not treated as a universal bypass.
-- The region shown in a global status view may differ from the region returned through the BD-J PSR20 gate. These are distinct observations, especially around session transitions.
-- Physical BD-J STOP/HOME restoration uses a conservative playback-state heuristic tested with a specific disc. A different menu/background-video workload may present similar decoder states.
-- For virtual BD-J media, region analysis can add visible loading time. Disable the optional virtual branch with `ISO_BDMV=0` if you prefer the firmware's ordinary ISO/BDMV behavior.
-- The mod is not a copy-protection, AACS, UHD or Cinavia bypass and makes no claims about such mechanisms.
+- Region support covers all standard A/B/C allowed-region combinations, but **not all individual discs or custom navigation programs are guaranteed**. See [Region support](REGION_SUPPORT.md).
+- BD-J can use PSR20 for more than region enforcement; a mere Java reference is not evidence of a lock. Ambiguous results may be treated as UNKNOWN.
+- During BD-J playback, a global status view may differ from the region supplied by the PSR20 handler. Session state and restoration should be evaluated separately.
+- Certain virtual BD-J titles may open more slowly when `ISO_BDMV=1`. Disable only the virtual-media region handler with `ISO_BDMV=0` if this matters more than automatic virtual region selection.
+- The project does not bypass AACS, Cinavia, UHD copy protection, or DVD region coding.
 
-See [Research: observed title coverage](research/TEST_EVIDENCE.md) and [Verification](VERIFICATION.md).
+[Evidence and test examples](research/TEST_EVIDENCE.md) · [Verification](VERIFICATION.md)
