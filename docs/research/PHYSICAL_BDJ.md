@@ -16,7 +16,7 @@ The final physical-disc shell logic observes a firmware playback-state block aro
 - Fall back to a roughly **250-ms** grace restoration policy if HBI is unavailable at entry or repeatedly unreadable.
 - Handle EJECT / disappearance of physical disc aliases independently, restoring global STOCK and resetting the session mailbox as needed.
 
-This heuristic reduced premature global restoration during tested physical BD-J playback without inserting the same behavior into ordinary HDMV or ISO/BDMV code paths. [development notes, physical playback-state investigation].
+This heuristic reduced premature global restoration during tested physical BD-J playback without inserting the same behavior into ordinary HDMV or ISO/BDMV code paths. See [Test evidence](TEST_EVIDENCE.md) and [Evidence register](EVIDENCE_REGISTER.md).
 
 ## Remaining uncertainty
 
