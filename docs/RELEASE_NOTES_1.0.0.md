@@ -5,21 +5,21 @@ Automatic Blu-ray Region **A/B/C** selection for the **OPPO UDP-203 with RU-JB 6
 ## Highlights
 
 - Physical **HDMV and BD-J** Blu-ray region selection, including PSR20-aware BD-J handling.
-- **All seven A/B/C region combinations** represented by the detection/selection logic; live and synthetic coverage documented separately in the [region-support matrix](REGION_SUPPORT.md).
+- **All seven A/B/C region combinations** represented by the detection/selection logic; live and synthetic coverage documented separately in the [region-support matrix](https://github.com/DamnFine815/autoABC/blob/main/docs/REGION_SUPPORT.md).
 - Optional ISO and BDMV automatic region selection, with **`ISO_BDMV=1` enabled by default**. Set `ISO_BDMV=0` to avoid optional BD-J virtual-media detection delays while retaining physical-disc auto-region.
 - Playback-session region handling, safe restoration, conservative detection and no persistent disc cache.
 - Firmware signature checks, independent AutoScript install/uninstall packages and an included read-only status checker.
 
 ## Release downloads
 
-- `autoABC-1.0.0-install.zip` — USB installer / reinstaller.
-- `autoABC-1.0.0-uninstall.zip` — USB uninstaller.
-- `SHA256SUMS` — SHA-256 fingerprints for both archives.
+- [autoABC-1.0.0-install.zip](https://github.com/DamnFine815/autoABC/releases/download/v1.0.0/autoABC-1.0.0-install.zip) — USB installer / reinstaller.
+- [autoABC-1.0.0-uninstall.zip](https://github.com/DamnFine815/autoABC/releases/download/v1.0.0/autoABC-1.0.0-uninstall.zip) — USB uninstaller.
+- [SHA256SUMS](https://github.com/DamnFine815/autoABC/releases/download/v1.0.0/SHA256SUMS) — SHA-256 fingerprints for both archives.
 
-Both ZIPs intentionally contain **no bundled README**. Extract one ZIP to a clean USB root with `AutoScript/` directly at the root. Never combine installer and uninstaller contents on one stick. See the [README](../README.md) and [Installation](INSTALLATION.md).
+Both ZIPs intentionally contain **no bundled README**. Extract one ZIP to a clean USB root with `AutoScript/` directly at the root. Never combine installer and uninstaller contents on one stick. See the [README](https://github.com/DamnFine815/autoABC/blob/main/README.md) and [Installation](https://github.com/DamnFine815/autoABC/blob/main/docs/INSTALLATION.md).
 
 ## Compatibility and limitations
 
 Requires the stated jailbreak firmware and successful live signature/boot-wrapper checks. All standard region types are addressed by the implementation, but playback of every Blu-ray pressing worldwide is **not guaranteed**. C-only and A+C have synthetic rather than separately documented physical-disc evidence. autoABC does not alter DVD region coding or bypass copy protection.
 
-The maintainer has confirmed the working autoABC 1.0.0 functionality. This README-free packaging revision retains every functional file's bytes and has been independently verified offline; it does not claim a separate hardware execution of the newly repacked outer ZIPs. See [Verification](VERIFICATION.md).
+The maintainer has confirmed the working autoABC 1.0.0 functionality. This README-free packaging revision retains every functional file's bytes and has been independently verified offline; it does not claim a separate hardware execution of the newly repacked outer ZIPs. See [Verification](https://github.com/DamnFine815/autoABC/blob/main/docs/VERIFICATION.md).
