@@ -27,9 +27,9 @@ Three layers work together:
 | `start.sh` / `stop.sh` | Daemon start/stop logic | Shell |
 | `status.sh` / `autoabcctl` | Read operational state | Shell |
 | `config.sh` | Strict parsing of `ISO_BDMV` | Shell |
-| `hook/*.bin` | Exact code signatures, RAM patch data and mailbox values | Opaque binary; rights not cleared for repo |
+| `hook/*.bin` | Exact code signatures, RAM patch data and mailbox values | Firmware-specific binary data |
 
-The public-source snapshot contains the exact shell files and launcher scripts, but not the ELF or opaque hook binary build inputs. The two sealed archives preserve those inputs for private review pending clearance. See [build and provenance](../BUILD_AND_PROVENANCE.md).
+The source repository contains the shell components and launchers, but not the complete native ELF build inputs or the hook binary data. The release ZIPs include the compiled helpers and required hook data. See [build and provenance](../BUILD_AND_PROVENANCE.md).
 
 ## Physical Blu-ray disc path
 
