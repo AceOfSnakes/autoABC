@@ -8,6 +8,10 @@
 
 Do **not** interpret the source repository as a complete from-scratch build system for every native binary. The complete ARM source/toolchain/reproducible build inputs are not present in this public repository, and some hook binaries require independent rights checks. The shell files copied under `src/runtime` and `installer` match the release assets byte-for-byte; the repository intentionally omits the unverified binary assets.
 
+## Release archive verification / assembly
+
+The root `mkrelease.sh` is retained for compatibility. Despite its historical name, it verifies and copies the existing, checksum-pinned archives; it does not compile source code or build native ARM binaries.
+
 ## Local sealed-archive build / verification
 
 Put the previously supplied, verified ZIPs on your computer, then run:
