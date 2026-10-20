@@ -1,10 +1,8 @@
 # autoABC
 
-**Automatic Blu-ray region selection for the OPPO UDP-203.**
+`autoABC` is an independent community modification for OPPO UDP-203 devices running the RU-JB 65-0131 environment**. It examines region restrictions and selects a suitable *runtime* Blu-ray region for supported physical Blu-ray Discs. Automatic selection for Blu-ray ISO images and BDMV folders is included but can be disabled.
 
-autoABC automatically detects and selects a suitable Blu-ray Region **A, B or C** during playback. It supports physical Blu-ray Discs, Blu-ray ISO images and BDMV folders on an **OPPO UDP-203 with RU-JB 65-0131 jailbreak firmware**, subject to the compatibility checks built into the installer.
-
-The project is designed to cover the standard region types and common authoring approaches without requiring manual region switching for each disc. It operates on the playback-session region instead of permanently changing the saved region setting.
+> **Risk:** This is unofficial software. It hooks the live player process and modifies the jailbreak overlay's early-boot launcher (with a guarded backup/restore procedure). An incompatible environment can cause loss of playback or boot problems. Do not install without a working recovery plan.
 
 ## Features
 
