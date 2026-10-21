@@ -108,6 +108,10 @@ The installer also contains `CHECK_READONLY.sh`, a **post-installation** integri
 
 The repository includes the **readable shell-side components, AutoScript launchers, tests, offline validation tools and research documentation**. It does not contain a full independent native ARM/hook-binary build chain. The release ZIPs include compiled helpers and firmware-specific hook data; they are not a complete native source build. [Build and provenance](docs/BUILD_AND_PROVENANCE.md) · [Licensing status](docs/LEGAL_AND_LICENSING.md).
 
+## Acknowledgments
+
+Special thanks to **theaxledentaldj** from AVForums for his valuable help, technical discussions, and support throughout the development.
+
 ## Disclaimer
 
 This independent project is not affiliated with or endorsed by OPPO Digital. Region support is extensive but cannot guarantee successful playback of every Blu-ray title or edition.
