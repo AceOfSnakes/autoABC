@@ -1,6 +1,6 @@
 # autoABC
 
-autoABC is an independent community modification for **OPPO UDP-203 devices running the RU-JB 65-0131 environment**. It examines region restrictions and selects a suitable *runtime* Blu-ray region (A, B or C) for supported physical Blu-ray Discs. Automatic selection for Blu-ray ISO images and BDMV folders is also included but can be disabled.
+**autoABC**  is an independent community modification for **OPPO UDP-203 devices running the RU-JB 65-0131 environment**. It examines region restrictions and selects a suitable *runtime* Blu-ray region (A, B or C) for supported physical Blu-ray Discs. Automatic selection for Blu-ray ISO images and BDMV folders is also included but can be disabled.
 
 > **Risk:** This is unofficial software. It hooks the live player process and modifies the jailbreak overlay's early-boot launcher (with a guarded backup/restore procedure). An incompatible environment can cause loss of playback or boot problems. Do not install without a working recovery plan.
 
