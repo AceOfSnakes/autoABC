@@ -33,7 +33,3 @@ Tray movement is not proof of success; always check the USB result and log. Read
 - `autoABC-1.1.0-install.zip`
 - `autoABC-1.1.0-uninstall.zip`
 - `SHA256SUMS` (SHA-256 of exactly the three ZIP files)
-
-### Third-party notice
-
-The installer bundles static ARM BusyBox 1.31.0 with its GPLv2 license notice. [Upstream source](https://busybox.net/downloads/busybox-1.31.0.tar.bz2). The original binary's build configuration has not been recovered.
