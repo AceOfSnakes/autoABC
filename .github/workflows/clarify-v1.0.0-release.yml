@@ -1,0 +1,35 @@
+name: One-time - clarify historical autoABC 1.0.0 release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/clarify-v1.0.0-release.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  historical-note:
+    if: github.event.head_commit.message == 'ci: clarify outdated v1.0.0 release text'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Edit the published v1.0.0 notes only (never touch tag or assets)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'only for the verified jb_overlay v1.7 environment' docs/RELEASE_NOTES_1.0.0.md
+          gh release edit v1.0.0 --repo "$GITHUB_REPOSITORY" --notes-file docs/RELEASE_NOTES_1.0.0.md
+          gh release view v1.0.0 --repo "$GITHUB_REPOSITORY" --json body --jq '.body' > "$RUNNER_TEMP/release-body.txt"
+          python3 - <<'PY'
+          from pathlib import Path
+          old=Path("docs/RELEASE_NOTES_1.0.0.md").read_text(encoding="utf-8").strip()
+          new=Path("/tmp/unused") if False else Path(__import__("os").environ["RUNNER_TEMP"])/"release-body.txt"
+          assert new.read_text(encoding="utf-8").strip()==old, "published release does not match updated doc"
+          print("HISTORICAL_RELEASE_NOTES=PASS")
+          PY
