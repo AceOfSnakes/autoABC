@@ -1,117 +1,112 @@
 # autoABC
 
-**autoABC**  is an independent community modification for **OPPO UDP-203 devices running the RU-JB 65-0131 environment**. It examines region restrictions and selects a suitable *runtime* Blu-ray region (A, B or C) for supported physical Blu-ray Discs. Automatic selection for Blu-ray ISO images and BDMV folders is also included but can be disabled.
+**autoABC 1.1.0** automatically selects Blu-ray **Region A/B/C** on supported **OPPO UDP-203 players with RU-JB 65-0131**. It works with physical HDMV and BD-J discs (including PSR20 checks), optionally ISO/BDMV, and includes **UOPfree**.
 
-> **Risk:** This is unofficial software. It hooks the live player process and modifies the jailbreak overlay's early-boot launcher (with a guarded backup/restore procedure). An incompatible environment can cause loss of playback or boot problems. Do not install without a working recovery plan.
+> **Release status:** The v1.1.0 packages have been prepared and verified offline; the GitHub release assets are not uploaded yet. **v1.0.0 is outdated — please do not install it.** If already installed, use its matching uninstaller before upgrading.
+>
+> **Warning:** This unofficial modification changes the running player's memory and integrates with its jailbreak boot chain. Back up your setup and have a recovery method. A successful compatibility check cannot guarantee every future boot or disc.
 
 ## Features
 
-- Automatic Blu-ray region selection for **HDMV** and **BD-J** discs, including discs that evaluate the player's **PSR20** region.
-- Region-aware analysis of single-region, multi-region and unrestricted Blu-ray titles.
-- Physical-disc playback support, including tested startup, STOP, HOME, EJECT and replay scenarios.
-- Optional support for **ISO and BDMV**, enabled by default (`ISO_BDMV=1`).
-- Automatic return toward the configured stock region after the applicable playback session.
-- Independent USB **install** and **uninstall** packages, firmware-code signature checks and conservative boot-wrapper handling.
-- No persistent disc cache and no need to install a separate companion mod.
+- Automatic Region **A/B/C** selection for physical **HDMV** and **BD-J** Blu-rays, including **PSR20-aware** behavior; all seven non-empty A/B/C allowed-region combinations are handled.
+- Optional automatic region selection for **Blu-ray ISO and BDMV folders**.
+- **Earlyboot** support to initialize autoABC in time for discs already inserted when the player starts.
+- **UOPfree included since 1.1.0:** bypass applicable disc-authored restrictions on **STOP, MENU and NEXT** in RAM.
+- Safe return toward the normal stock region after a playback session, no persistent per-disc region cache.
+- Separate **CHECKONLY**, **INSTALL** and **UNINSTALL** USB packages, exact signature checks, guarded boot-file backup/restore and readable result logs.
 
-## Region support and testing
+## Installation (1.1.0)
 
-The region-selection logic implements **all seven nonempty A/B/C allowed-region combinations**. Here, *supported by the detector* and *demonstrated with a physical disc* are deliberately distinguished.
+**Release files:** `autoABC-1.1.0-CHECKONLY.zip`, `autoABC-1.1.0-install.zip`, `autoABC-1.1.0-uninstall.zip` and `SHA256SUMS`. Once uploaded, get them from [GitHub Releases](https://github.com/DamnFine815/autoABC/releases); **do not use the automatically generated “Source code” ZIP** as an installer. The [1.1.0 release notes](docs/RELEASE_NOTES_1.1.0.md) include the exact archive checksums.
 
-| Blu-ray region type | autoABC detection / selection | Evidence from development |
-| --- | --- | --- |
-| **A only** | Supported | Physical BD-J disc playback |
-| **B only** | Supported | Physical HDMV disc playback |
-| **C only** | Supported | Synthetic Java / detector test; no separately documented C-only physical disc |
-| **A+B** | Supported | Physical HDMV and BD-J disc playback |
-| **A+C** | Supported | Synthetic Java / detector test; no separately documented A+C physical disc |
-| **B+C** | Supported | Physical-disc restrictions and ISO/BDMV tests |
-| **A+B+C / region-free** | Supported | Unrestricted-region metadata and false-positive test cases |
+1. **Uninstall any older autoABC first, using that version's matching uninstaller.** Remove its USB stick and fully power-cycle the player. Never install 1.1.0 over an earlier version.
+2. **Uninstall standalone UOPfree first** if you want integrated `UOPFREE=1` (the default). The installer will reject a duplicate standalone UOPfree setup.
+3. Extract **CHECKONLY only** to the root of a clean, player-readable USB stick, so that `AutoScript/AutoScript.TSS` is directly under the USB root. Adjust `AutoScript/config.ini` and `AutoScript/uopfree.ini` as desired. Start the player with the USB inserted.
+4. Check **`autoABC-result.txt`** on the USB stick: it must say **`COMPATIBLE`**. Read `autoABC.log` for details. CHECKONLY performs compatibility checks **without installing autoABC**. Remove the stick and fully power-cycle.
+5. Extract **INSTALL only** to a clean USB root. Use **the same configuration values** as CHECKONLY; save both INI files. Boot with the stick and confirm **`INSTALLED`** (or `ALREADY_INSTALLED` for a verified identical 1.1.0 installation) in `autoABC-result.txt`. If it says `FAILED`, stop and examine `autoABC.log`.
+6. Remove the USB stick, **fully power-cycle**, and confirm normal startup and disc playback. For removal, use **only the matching 1.1.0 UNINSTALL** package and reboot again.
 
-The aim is broad compatibility with standard Blu-ray region types, including HDMV control-flow checks, BD-J application logic, allowed-region masks and PSR20 queries. **No mod can guarantee that every Blu-ray release worldwide will work**: publisher-specific Java code, authoring variations, unusual region checks and different disc pressings can still require investigation. For example titles and precise test categories, see [Region support](docs/REGION_SUPPORT.md) and [Test evidence](docs/research/TEST_EVIDENCE.md).
+**Use only one AutoScript ZIP at a time.** Ejecting the tray is a convenience, **not proof of success**. The EJECT result is logged separately; the USB result file is authoritative. CHECKONLY can reject an unsupported or modified setup, but cannot certify cold-boot timing.
 
-Sony documents Blu-ray regions A/B/C and region-free discs; the Blu-ray Disc Association describes region playback control with both HDMV and BD-J formats. See [Sources](docs/SOURCES.md).
+## Configuration
 
-## Supported media
+Set the options **before running both CHECKONLY and INSTALL**:
 
-| Source | Automatic region selection | Default |
-| --- | --- | --- |
-| Physical HDMV Blu-ray | Yes | On |
-| Physical BD-J Blu-ray | Yes | On |
-| Blu-ray ISO | Yes, optional | On |
-| Blu-ray BDMV folder | Yes, optional | On |
-
-This is **not** a DVD region patch, an AACS/Cinavia bypass or a promise of universal playback for all discs.
-
-## Requirements
-
-- **OPPO UDP-203 with RU-JB 65-0131 jailbreak firmware** and a functioning compatible jailbreak overlay.
-- Working USB AutoScript startup and compatible running player process (`bdpprog.1`).
-- Four firmware-code signatures and the current boot-wrapper state must pass the installer's checks. A matching firmware number alone does not bypass these checks.
-- A workable backup/recovery procedure is recommended before changing the early-boot configuration.
-
-See [Compatibility](docs/COMPATIBILITY.md).
-
-## Downloads and installation
-
-Download the two **release assets**, not GitHub's automatically generated source snapshot:
-
-- **`autoABC-1.0.0-install.zip`** – installs or reinstalls autoABC; includes `AutoScript/config.ini` and a read-only checker.
-- **`autoABC-1.0.0-uninstall.zip`** – removes autoABC and restores its guarded early-boot changes.
-
-The ZIPs have separate internal `SHA256SUMS_RELEASE` manifests. **Never mix the two `AutoScript/` trees on one USB stick.**
-
-1. Check that your player has the required jailbreak firmware and confirm you can recover the current overlay setup.
-2. Stop playback, eject any disc and extract **only** the install ZIP to the root of a clean USB stick, so the root contains `AutoScript/AutoScript.TSS`.
-3. Leave `AutoScript/config.ini` at the default `ISO_BDMV=1`, or change it to `ISO_BDMV=0` if preferred.
-4. Power the player fully off, connect the USB stick and start the player.
-5. On the USB stick, verify `autoABC-result.txt` says **`INSTALLED`**. A moving tray by itself does not prove success. Read `autoABC.log` if installation fails.
-6. Remove the USB stick and fully power-cycle the player before testing playback.
-
-**Complete guides:** [Installation](docs/INSTALLATION.md) · [Uninstallation](docs/UNINSTALLATION.md) · [Verification](docs/VERIFICATION.md).
-
-## ISO/BDMV configuration
-
+**`AutoScript/config.ini`**
 ```ini
 ISO_BDMV=1
+EARLYBOOT=1
 ```
 
-- **`1` (default):** autoABC also detects and selects regions for Blu-ray ISO and BDMV folders.
-- **`0`:** disables autoABC's virtual-media region selection. Physical Blu-ray auto-region remains enabled; the player's ordinary ISO/BDMV playback facilities are unchanged.
+- **`ISO_BDMV=1` (default):** auto-region also examines ISO/BDMV. Complex BD-J titles may take slightly longer to open because their region information must be detected. **Set `ISO_BDMV=0`** if the extra startup delay bothers you; automatic region selection for **physical discs remains enabled**.
+- **`EARLYBOOT=1` (default):** starts autoABC earlier in the verified boot sequence. This helps avoid a first-disc region screen when a Blu-ray is already inserted at power-on or autoplay starts immediately. **`EARLYBOOT=0`** uses the later startup path; an already-inserted first disc may then start before autoABC is ready.
 
-Some complicated BD-J ISO/BDMV titles can take longer to open when automatic detection is enabled. One *Avatar* analysis recorded roughly **0.93 seconds of ISO detector work** and **1.22 seconds of BDMV detector work** along the relevant fallback paths. Those are historical example measurements, **not** guaranteed added loading times. Users who prefer the faster native path for their own media can choose `ISO_BDMV=0`.
+**`AutoScript/uopfree.ini`**
+```ini
+UOPFREE=1
+```
 
-More: [Configuration](docs/CONFIGURATION.md) · [Virtual-media timing](docs/research/VIRTUAL_MEDIA_TIMING.md).
+- **`UOPFREE=1` (default):** enables the integrated RAM-only UOPfree mod (STOP/MENU/NEXT where disc-authored UOPs block them). **Remove standalone UOPfree before enabling this.**
+- **`UOPFREE=0`:** leaves UOPfree disabled. It does not change automatic Blu-ray region handling.
 
-## Runtime status
+These are installation-time settings. **To change the installed boot integration, uninstall the same autoABC version, reboot, and reinstall with the revised INI files.** Do not expect editing the installed INI alone to enable or disable Earlyboot.
 
-For experienced users with SSH or Telnet after installation:
+## Supported boot setups
+
+The installer recognizes **exact, known boot-chain and firmware signatures**; similar version names or unrelated patches are not automatically accepted.
+
+| Boot environment | 1.1.0 support |
+| --- | --- |
+| **jb_overlay v1.7, V2, V3** | Known overlay boot chain, including verified stock `brick_monitor` and the specific recognized EJECT-to-KEY8 variant |
+| **oppo-dv-mkv v1.6.0** without jb_overlay | Known MKV-only wrapper, with Earlyboot support |
+| **jb_overlay + oppo-dv-mkv v1.6.0** | Recognized combined boot chain, with Earlyboot support |
+| **oppo-dv-mkv v1.5.0** | Its recognized wrapper signature is also accepted |
+
+Support is conditional on **CHECKONLY=COMPATIBLE**. V2 has matching known boot-file signatures; it has not been independently confirmed through a complete hardware cold-boot test. Hardware feedback exists for v1.7 Earlyboot and combined-overlay installation, plus user-reported MKV-only functionality; this is not a guarantee for every modified boot setup. See [Compatibility](docs/COMPATIBILITY.md).
+
+## Telnet / SSH quick reference
+
+These commands are for an **installed 1.1.0**. Read-only checks first:
 
 ```sh
-cat /mnt/ubi_boot/autoABC/config.ini
-sh /mnt/ubi_boot/autoABC/config.sh check
+# Confirm build, boot mode and configuration
+cat /mnt/ubi_boot/autoABC/BUILD_ID
+cat /mnt/ubi_boot/autoABC/INSTALL_MODE
+sh /mnt/ubi_boot/autoABC/config.sh show
+cat /mnt/ubi_boot/autoABC/uopfree.ini
+
+# Main report: daemons, region, PSR20 gate, UOPfree and recent logs
 sh /mnt/ubi_boot/autoABC/status.sh
+
+# Current player region control (CBR/CDR)
 /mnt/ubi_boot/autoABC/autoabcctl status
+
+# UOPfree RAM status
+sh /mnt/ubi_boot/autoABC/uopfree_status.sh
+
+# Boot, Earlyboot and disc-detection logs
+cat /mnt/ubi_boot/autoABC/earlyboot.log
+cat /mnt/ubi_boot/autoABC/boot.log
+cat /mnt/ubi_boot/autoABC/regiond.log
 ```
 
-The installer also contains `CHECK_READONLY.sh`, a **post-installation** integrity/status checker.
+**Manually set a playback region (advanced / live RAM only):**
 
-## Documentation
+```sh
+/mnt/ubi_boot/autoABC/autoabcctl A
+/mnt/ubi_boot/autoABC/autoabcctl B
+/mnt/ubi_boot/autoABC/autoabcctl C
+/mnt/ubi_boot/autoABC/autoabcctl off
+```
 
-- [Installation](docs/INSTALLATION.md), [Uninstallation](docs/UNINSTALLATION.md) and [Compatibility](docs/COMPATIBILITY.md)
-- [Configuration](docs/CONFIGURATION.md), [FAQ](docs/FAQ.md), [Troubleshooting](docs/TROUBLESHOOTING.md)
-- [Blu-ray region support and test matrix](docs/REGION_SUPPORT.md)
-- [Technical architecture](docs/research/ARCHITECTURE.md), [Research index](docs/research/README.md) and [Evidence register](docs/research/EVIDENCE_REGISTER.md)
-- [Sources and references](docs/SOURCES.md), [Release notes](docs/RELEASE_NOTES_1.0.0.md)
+Run **one** of those commands, not all four. `off` restores the stock/off region-control value; automatic detection can change it again when playback changes. **During BD-J playback, the PSR20 gate may provide a region independently of the displayed CBR value.** Do not interpret a single CBR reading as proof that the gate is inactive. Manual overrides are for diagnostics, not persistent configuration.
 
-## Code and build scope
+## Notes, sources and credits
 
-The repository includes the **readable shell-side components, AutoScript launchers, tests, offline validation tools and research documentation**. It does not contain a full independent native ARM/hook-binary build chain. The release ZIPs include compiled helpers and firmware-specific hook data; they are not a complete native source build. [Build and provenance](docs/BUILD_AND_PROVENANCE.md) · [Licensing status](docs/LEGAL_AND_LICENSING.md).
+autoABC is **not** a DVD region patch, AACS/Cinavia bypass or universal promise for every Blu-ray. See [Region support](docs/REGION_SUPPORT.md), [Installation](docs/INSTALLATION.md), [Configuration](docs/CONFIGURATION.md), [Troubleshooting](docs/TROUBLESHOOTING.md), [Uninstallation](docs/UNINSTALLATION.md) and [Technical research](docs/research/README.md).
 
-## Acknowledgments
+**BusyBox:** autoABC includes a static ARM BusyBox 1.31.0 binary from the historical jb_overlay package. [Official upstream BusyBox 1.31.0 source](https://busybox.net/downloads/busybox-1.31.0.tar.bz2) and [GNU GPLv2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) are linked for reference; the original binary's `.config`, possible patches and precise build instructions have **not** been recovered. **The upstream tarball alone has not been verified as the complete corresponding source for that specific binary.** See [Licensing and provenance](docs/LEGAL_AND_LICENSING.md).
 
 Special thanks to **theaxledentaldj** from AVForums for his valuable help, technical discussions, and support throughout the development.
 
-## Disclaimer
-
-This independent project is not affiliated with or endorsed by OPPO Digital. Region support is extensive but cannot guarantee successful playback of every Blu-ray title or edition.
+autoABC is independent of OPPO Digital and is not affiliated with or endorsed by the manufacturer.
