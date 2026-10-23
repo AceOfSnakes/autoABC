@@ -2,6 +2,8 @@
 
 **autoABC 1.1.0** automatically selects Blu-ray **Region A/B/C** on supported **OPPO UDP-203 players with RU-JB 65-0131**. It works with physical HDMV and BD-J discs (including PSR20 checks), optionally ISO/BDMV, and includes **[UOPfree](https://github.com/DamnFine815/UOPfree)**.
 
+**New in v1.1.0:** autoABC now supports **oppo-dv-mkv v1.6.0** and **jb_overlay v1.7 / v2.0 / v3**, including combined installations.
+
 > **Release status:** The v1.1.0 packages have been prepared and verified offline; the GitHub release assets are not uploaded yet. **v1.0.0 is outdated — please do not install it.** If already installed, use its matching uninstaller before upgrading.
 >
 > **Warning:** This unofficial modification changes the running player's memory and integrates with its jailbreak boot chain. Back up your setup and have a recovery method. A successful compatibility check cannot guarantee every future boot or disc.
