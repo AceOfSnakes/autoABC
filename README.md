@@ -13,7 +13,7 @@
 - Automatic Region **A/B/C** selection for physical **HDMV** and **BD-J** Blu-rays, including **PSR20-aware** behavior; all seven non-empty A/B/C allowed-region combinations are handled.
 - Optional automatic region selection for **Blu-ray ISO and BDMV folders**.
 - **Earlyboot** support to initialize autoABC in time for discs already inserted when the player starts.
-- **[UOPfree](https://github.com/DamnFine815/UOPfree) included since 1.1.0:** bypass applicable disc-authored restrictions on **STOP, MENU and NEXT** in RAM.
+- **[UOPfree](https://github.com/DamnFine815/UOPfree) included since 1.1.0:** bypass applicable disc-authored restrictions.
 - Safe return toward the normal stock region after a playback session, no persistent per-disc region cache.
 - Separate **CHECKONLY**, **INSTALL** and **UNINSTALL** USB packages, exact signature checks, guarded boot-file backup/restore and readable result logs.
 
