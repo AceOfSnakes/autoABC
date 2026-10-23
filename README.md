@@ -4,7 +4,7 @@
 
 **New in v1.1.0:** autoABC now supports **oppo-dv-mkv v1.6.0** and **jb_overlay v1.7 / v2.0 / v3**, including combined installations.
 
-> **Release status:** The v1.1.0 packages have been prepared and verified offline; the GitHub release assets are not uploaded yet. **v1.0.0 is outdated — please do not install it.** If already installed, use its matching uninstaller before upgrading.
+> **Release:** [autoABC v1.1.0](https://github.com/DamnFine815/autoABC/releases/tag/v1.1.0) is available now. **v1.0.0 is outdated — please do not install it.** If already installed, remove it with its matching uninstaller before upgrading.
 >
 > **Warning:** This unofficial modification changes the running player's memory and integrates with its jailbreak boot chain. Back up your setup and have a recovery method. A successful compatibility check cannot guarantee every future boot or disc.
 
@@ -19,7 +19,7 @@
 
 ## Installation (1.1.0)
 
-**Release files:** `autoABC-1.1.0-CHECKONLY.zip`, `autoABC-1.1.0-install.zip`, `autoABC-1.1.0-uninstall.zip` and `SHA256SUMS`. Once uploaded, get them from [GitHub Releases](https://github.com/DamnFine815/autoABC/releases); **do not use the automatically generated “Source code” ZIP** as an installer. The [1.1.0 release notes](docs/RELEASE_NOTES_1.1.0.md) include the exact archive checksums.
+**Release files:** [CHECKONLY](https://github.com/DamnFine815/autoABC/releases/download/v1.1.0/autoABC-1.1.0-CHECKONLY.zip), [INSTALL](https://github.com/DamnFine815/autoABC/releases/download/v1.1.0/autoABC-1.1.0-install.zip), [UNINSTALL](https://github.com/DamnFine815/autoABC/releases/download/v1.1.0/autoABC-1.1.0-uninstall.zip) and [SHA256SUMS](https://github.com/DamnFine815/autoABC/releases/download/v1.1.0/SHA256SUMS). Download the official assets; **do not use GitHub’s automatically generated “Source code” ZIP** as an installer. Verify your downloads against `SHA256SUMS`.
 
 1. **Uninstall any older autoABC first, using that version's matching uninstaller.** Remove its USB stick and fully power-cycle the player. Never install 1.1.0 over an earlier version.
 2. **Uninstall standalone [UOPfree](https://github.com/DamnFine815/UOPfree) first** if you want integrated `UOPFREE=1` (the default). The installer will reject a duplicate standalone [UOPfree](https://github.com/DamnFine815/UOPfree) setup.
