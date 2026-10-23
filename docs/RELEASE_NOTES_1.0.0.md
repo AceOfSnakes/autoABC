@@ -1,6 +1,8 @@
 # autoABC 1.0.0 - Release Notes
 # OUTDATED — PLEASE DO NOT USE
 
+> **Historical compatibility:** autoABC 1.0.0 was intended **only for the verified jb_overlay v1.7 environment**. It does not include the 1.1.0 support for jb_overlay V2/V3 or oppo-dv-mkv. To upgrade, uninstall it with its matching 1.0.0 uninstaller, reboot, then run 1.1.0 CHECKONLY.
+
 Automatic Blu-ray Region **A/B/C** selection for the **OPPO UDP-203 with RU-JB 65-0131 jailbreak firmware**.
 
 ## Highlights
