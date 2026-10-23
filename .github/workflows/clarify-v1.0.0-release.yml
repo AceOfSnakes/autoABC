@@ -11,7 +11,8 @@ permissions:
 
 jobs:
   historical-note:
-    if: github.event.head_commit.message == 'ci: clarify outdated v1.0.0 release text'
+    if: >-
+      github.event.head_commit.message == 'ci: clarify outdated v1.0.0 release text'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
