@@ -1,6 +1,6 @@
 # autoABC
 
-**autoABC 1.1.0** automatically selects Blu-ray **Region A/B/C** on supported **OPPO UDP-203 players with RU-JB 65-0131**. It works with physical HDMV and BD-J discs (including PSR20 checks), optionally ISO/BDMV, and includes **UOPfree**.
+**autoABC 1.1.0** automatically selects Blu-ray **Region A/B/C** on supported **OPPO UDP-203 players with RU-JB 65-0131**. It works with physical HDMV and BD-J discs (including PSR20 checks), optionally ISO/BDMV, and includes **[UOPfree](https://github.com/DamnFine815/UOPfree)**.
 
 > **Release status:** The v1.1.0 packages have been prepared and verified offline; the GitHub release assets are not uploaded yet. **v1.0.0 is outdated — please do not install it.** If already installed, use its matching uninstaller before upgrading.
 >
@@ -11,7 +11,7 @@
 - Automatic Region **A/B/C** selection for physical **HDMV** and **BD-J** Blu-rays, including **PSR20-aware** behavior; all seven non-empty A/B/C allowed-region combinations are handled.
 - Optional automatic region selection for **Blu-ray ISO and BDMV folders**.
 - **Earlyboot** support to initialize autoABC in time for discs already inserted when the player starts.
-- **UOPfree included since 1.1.0:** bypass applicable disc-authored restrictions on **STOP, MENU and NEXT** in RAM.
+- **[UOPfree](https://github.com/DamnFine815/UOPfree) included since 1.1.0:** bypass applicable disc-authored restrictions on **STOP, MENU and NEXT** in RAM.
 - Safe return toward the normal stock region after a playback session, no persistent per-disc region cache.
 - Separate **CHECKONLY**, **INSTALL** and **UNINSTALL** USB packages, exact signature checks, guarded boot-file backup/restore and readable result logs.
 
@@ -20,7 +20,7 @@
 **Release files:** `autoABC-1.1.0-CHECKONLY.zip`, `autoABC-1.1.0-install.zip`, `autoABC-1.1.0-uninstall.zip` and `SHA256SUMS`. Once uploaded, get them from [GitHub Releases](https://github.com/DamnFine815/autoABC/releases); **do not use the automatically generated “Source code” ZIP** as an installer. The [1.1.0 release notes](docs/RELEASE_NOTES_1.1.0.md) include the exact archive checksums.
 
 1. **Uninstall any older autoABC first, using that version's matching uninstaller.** Remove its USB stick and fully power-cycle the player. Never install 1.1.0 over an earlier version.
-2. **Uninstall standalone UOPfree first** if you want integrated `UOPFREE=1` (the default). The installer will reject a duplicate standalone UOPfree setup.
+2. **Uninstall standalone [UOPfree](https://github.com/DamnFine815/UOPfree) first** if you want integrated `UOPFREE=1` (the default). The installer will reject a duplicate standalone [UOPfree](https://github.com/DamnFine815/UOPfree) setup.
 3. Extract **CHECKONLY only** to the root of a clean, player-readable USB stick, so that `AutoScript/AutoScript.TSS` is directly under the USB root. Adjust `AutoScript/config.ini` and `AutoScript/uopfree.ini` as desired. Start the player with the USB inserted.
 4. Check **`autoABC-result.txt`** on the USB stick: it must say **`COMPATIBLE`**. Read `autoABC.log` for details. CHECKONLY performs compatibility checks **without installing autoABC**. Remove the stick and fully power-cycle.
 5. Extract **INSTALL only** to a clean USB root. Use **the same configuration values** as CHECKONLY; save both INI files. Boot with the stick and confirm **`INSTALLED`** (or `ALREADY_INSTALLED` for a verified identical 1.1.0 installation) in `autoABC-result.txt`. If it says `FAILED`, stop and examine `autoABC.log`.
@@ -41,13 +41,13 @@ EARLYBOOT=1
 - **`ISO_BDMV=1` (default):** auto-region also examines ISO/BDMV. Complex BD-J titles may take slightly longer to open because their region information must be detected. **Set `ISO_BDMV=0`** if the extra startup delay bothers you; automatic region selection for **physical discs remains enabled**.
 - **`EARLYBOOT=1` (default):** starts autoABC earlier in the verified boot sequence. This helps avoid a first-disc region screen when a Blu-ray is already inserted at power-on or autoplay starts immediately. **`EARLYBOOT=0`** uses the later startup path; an already-inserted first disc may then start before autoABC is ready.
 
-**`AutoScript/uopfree.ini`**
+**`AutoScript/uopfree.ini`** ([UOPfree](https://github.com/DamnFine815/UOPfree) settings)
 ```ini
 UOPFREE=1
 ```
 
-- **`UOPFREE=1` (default):** enables the integrated RAM-only UOPfree mod (STOP/MENU/NEXT where disc-authored UOPs block them). **Remove standalone UOPfree before enabling this.**
-- **`UOPFREE=0`:** leaves UOPfree disabled. It does not change automatic Blu-ray region handling.
+- **`UOPFREE=1` (default):** enables the integrated RAM-only [UOPfree](https://github.com/DamnFine815/UOPfree) mod (STOP/MENU/NEXT where disc-authored UOPs block them). **Remove standalone [UOPfree](https://github.com/DamnFine815/UOPfree) before enabling this.**
+- **`UOPFREE=0`:** leaves [UOPfree](https://github.com/DamnFine815/UOPfree) disabled. It does not change automatic Blu-ray region handling.
 
 These are installation-time settings. **To change the installed boot integration, uninstall the same autoABC version, reboot, and reinstall with the revised INI files.** Do not expect editing the installed INI alone to enable or disable Earlyboot.
 
@@ -105,8 +105,10 @@ Run **one** of those commands, not all four. `off` restores the stock/off region
 
 autoABC is **not** a DVD region patch, AACS/Cinavia bypass or universal promise for every Blu-ray. See [Region support](docs/REGION_SUPPORT.md), [Installation](docs/INSTALLATION.md), [Configuration](docs/CONFIGURATION.md), [Troubleshooting](docs/TROUBLESHOOTING.md), [Uninstallation](docs/UNINSTALLATION.md) and [Technical research](docs/research/README.md).
 
-**BusyBox:** autoABC includes a static ARM BusyBox 1.31.0 binary from the historical jb_overlay package. [Official upstream BusyBox 1.31.0 source](https://busybox.net/downloads/busybox-1.31.0.tar.bz2) and [GNU GPLv2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) are linked for reference; the original binary's `.config`, possible patches and precise build instructions have **not** been recovered. **The upstream tarball alone has not been verified as the complete corresponding source for that specific binary.** See [Licensing and provenance](docs/LEGAL_AND_LICENSING.md).
+**BusyBox:** autoABC includes a static ARM BusyBox 1.31.0 binary. See the [official upstream source](https://busybox.net/downloads/busybox-1.31.0.tar.bz2) and [GNU GPLv2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html).
 
 Special thanks to **theaxledentaldj** from AVForums for his valuable help, technical discussions, and support throughout the development.
+
+Special thanks to **Cashkey** for testing **`EARLYBOOT=1`** with **oppo-dv-mkv**.
 
 autoABC is independent of OPPO Digital and is not affiliated with or endorsed by the manufacturer.
