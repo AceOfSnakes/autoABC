@@ -1,4 +1,4 @@
-# autoABC 1.1.0
+# autoABC 1.1.0 - Release Notes
 
 Automatic Blu-ray Region A/B/C selection for OPPO UDP-203 (RU-JB 65-0131).
 
