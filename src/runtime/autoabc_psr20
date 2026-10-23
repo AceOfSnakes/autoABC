@@ -4,7 +4,7 @@ BASE="/mnt/ubi_boot/autoABC"
 LOG="$BASE/psr20_hookd.log"
 PIDFILE="$BASE/psr20_hookd.pid"
 STATEFILE="/tmp/autoabc_psr20_hook.state"
-BB="/mnt/ubi_boot/jb_overlay/bin/busybox"; [ -x "$BB" ] || BB="/bin/busybox"
+BB="/mnt/ubi_boot/autoABC/bin/busybox"
 NGET=$((0x002aefc0))
 ACCESS_PLT=$((0x000306f8))
 USLEEP_PLT=$((0x0003294c))

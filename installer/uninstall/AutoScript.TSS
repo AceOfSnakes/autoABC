@@ -1,8 +1,8 @@
 #MTKAT 0.xx script
 
 SLEEPMS(1000)
-CLI(CLI_exec rm -f /tmp/autoabc-u.sh)
-CLI(CLI_exec cp /mnt/sd*/AutoScript/autoABC-uninstall.sh /tmp/autoabc-u.sh)
-CLI(CLI_exec chmod 755 /tmp/autoabc-u.sh)
-CLI(CLI_exec /tmp/autoabc-u.sh)
+CLI(CLI_exec rm -f /tmp/autoABC-uninstall.sh)
+CLI(CLI_exec cp /mnt/sd*/AutoScript/autoABC-uninstall.sh /tmp/autoABC-uninstall.sh)
+CLI(CLI_exec chmod 755 /tmp/autoABC-uninstall.sh)
+CLI(CLI_exec /tmp/autoABC-uninstall.sh)
 CLI(CLI_exec sync)

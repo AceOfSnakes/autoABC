@@ -3,8 +3,7 @@
 # Never chooses a region; never touches CBR/HBI; never runs in ISO_BDMV=1.
 VERSION="autoABC virtual PSR20 pass-through"
 BASE="/mnt/ubi_boot/autoABC"
-BB="/mnt/ubi_boot/jb_overlay/bin/busybox"
-[ -x "$BB" ] || BB="/bin/busybox"
+BB="/mnt/ubi_boot/autoABC/bin/busybox"
 PIDFILE="$BASE/virtual_off_pass.pid"
 STATEFILE="/tmp/autoabc_psr20_hook.state"
 LOG="$BASE/virtual_off_pass.log"

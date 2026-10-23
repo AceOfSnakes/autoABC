@@ -9,8 +9,7 @@ STATE="/tmp/autoabc_virtual.state"
 SEQFILE="/tmp/autoabc_virtual.seq"
 LOCK="/tmp/autoabc_preplay.lock"
 DISABLED="/tmp/autoabc_disabled"
-BB="/mnt/ubi_boot/jb_overlay/bin/busybox"
-[ -x "$BB" ] || BB="/bin/busybox"
+BB="/mnt/ubi_boot/autoABC/bin/busybox"
 TYPE="$1"
 case "$TYPE" in b) TYPE=bdmv;; i) TYPE=iso;; esac
 # Defense-in-depth: virtual region selection is never allowed in OFF mode.

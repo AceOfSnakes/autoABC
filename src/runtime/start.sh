@@ -1,6 +1,6 @@
 #!/bin/sh
 VERSION="autoABC"
-BASE="/mnt/ubi_boot/autoABC"; BB="/mnt/ubi_boot/jb_overlay/bin/busybox"; [ -x "$BB" ] || BB="/bin/busybox"
+BASE="/mnt/ubi_boot/autoABC"; BB="/mnt/ubi_boot/autoABC/bin/busybox"
 ISO_BDMV="$("$BASE/config.sh" get-iso 2>/dev/null)" || { echo 'CONFIG_INVALID: using safe ISO_BDMV=0'; ISO_BDMV=0; }
 case "$ISO_BDMV" in 0|1) ;; *) echo 'CONFIG_UNKNOWN: using safe ISO_BDMV=0'; ISO_BDMV=0;; esac
 ACTIVE_CONFIG=/tmp/autoabc_active_iso

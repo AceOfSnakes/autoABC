@@ -1,7 +1,12 @@
 #!/bin/sh
-BASE="/mnt/ubi_boot/autoABC"; BB="/mnt/ubi_boot/jb_overlay/bin/busybox"; [ -x "$BB" ] || BB="/bin/busybox"
+BASE="/mnt/ubi_boot/autoABC"; BB="/mnt/ubi_boot/autoABC/bin/busybox"
 proc_has(){ P="$1"; shift; case "$P" in ''|*[!0-9]*) return 1;; esac; [ -r "/proc/$P/cmdline" ] || return 1; CMD="$(tr '\000' ' ' < "/proc/$P/cmdline" 2>/dev/null)"; for S in "$@"; do case "$CMD" in *"$S"*) return 0;; esac; done; return 1; }
 echo "autoABC status"
+if [ -f "$BASE/uopfree_status.sh" ] && [ ! -L "$BASE/uopfree_status.sh" ]; then
+    sh "$BASE/uopfree_status.sh" 2>&1 || :
+else
+    echo 'UOPFREE_STATE=STATUS_SCRIPT_MISSING'
+fi
 
 # Embedded read-only hook status helpers: no separate runtime scripts.
 hook_status() {
@@ -12,9 +17,9 @@ case "$P" in ''|*[!0-9]*) echo "HOOK=NO_ACTIVE_TARGET"; exit 1;; esac
 case "$PROF" in base) C=$((0x01c03a00)); W="$BASE/hook/got_wrapper_base.bin";; extended) C=$((0x01c11200)); W="$BASE/hook/got_wrapper_extended.bin";; *) echo "HOOK=UNKNOWN_PROFILE"; exit 1;; esac
 T="/tmp/ra_hs.$$"; "$BB" dd if="/proc/$P/mem" of="$T" bs=1 skip=$((0x011d8e40)) count=4 2>/dev/null
 if "$BB" cmp -s "$T" "$W"; then
-  GOT="$(hexdump -v -e '1/4 "%08x"' "$T" 2>/dev/null)"; rm -f "$T"
+  GOT="$("$BB" hexdump -v -e '1/4 "%08x"' "$T" 2>/dev/null)"; rm -f "$T"
   O="/tmp/ra_ho.$$"; "$BB" dd if="/proc/$P/mem" of="$O" bs=1 skip=$((C+0x20)) count=4 2>/dev/null
-  ORIG="$(hexdump -v -e '1/4 "%08x"' "$O" 2>/dev/null)"; rm -f "$O"
+  ORIG="$("$BB" hexdump -v -e '1/4 "%08x"' "$O" 2>/dev/null)"; rm -f "$O"
   echo "HOOK=INSTALLED PROFILE=$PROF MODE=GOT_PREPLAY_NO_SIGSTOP_REAL_BDMV_LR_ISO_STRING GOT=0x011d8e40 WRAPPER=0x${GOT:-UNKNOWN} ORIGINAL_IPCD=0x${ORIG:-UNKNOWN}"
 else rm -f "$T"; echo "HOOK=NOT_INSTALLED_OR_MISMATCH PROFILE=$PROF"; fi
 )

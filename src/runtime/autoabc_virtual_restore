@@ -2,14 +2,14 @@
 VERSION="autoABC virtual restore"
 BASE="/mnt/ubi_boot/autoABC"; FAST="$BASE/autoabc_detect"; LOG="$BASE/restore.log"; PIDFILE="$BASE/restore.pid"
 STATE="/tmp/autoabc_virtual.state"; DISABLED="/tmp/autoabc_disabled"
-BB="/mnt/ubi_boot/jb_overlay/bin/busybox"; [ -x "$BB" ] || BB="/bin/busybox"
+BB="/mnt/ubi_boot/autoABC/bin/busybox"
 VFLAG_DEC=29383172; CBR_DEC=19089148; SELF="$$"
 echo "$SELF" > "$PIDFILE"
 log(){ TS="$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null)"; [ -n "$TS" ] || TS=NO_DATE; echo "$TS $*" >> "$LOG"; }
 cleanup(){ P="$(cat "$PIDFILE" 2>/dev/null)"; [ "$P" = "$SELF" ] && rm -f "$PIDFILE"; }
 trap 'cleanup' 0; trap 'exit 0' 1 2 15
 compatible(){ P="$1"; case "$P" in ''|*[!0-9]*) return 1;; esac; [ "$(cat /proc/$P/comm 2>/dev/null)" = "bdpprog.1" ] && [ -r "/proc/$P/mem" ]; }
-rdbyte(){ dd if="/proc/$1/mem" bs=1 skip="$2" count=1 2>/dev/null | hexdump -v -e '1/1 "%02x"' 2>/dev/null; }
+rdbyte(){ "$BB" dd if="/proc/$1/mem" bs=1 skip="$2" count=1 2>/dev/null | "$BB" hexdump -v -e '1/1 "%02x"' 2>/dev/null; }
 vflag(){ rdbyte "$1" "$VFLAG_DEC"; }
 cbr(){ rdbyte "$1" "$CBR_DEC"; }
 state_read(){ set -- $(cat "$STATE" 2>/dev/null); SGEN="$1"; SPID="$2"; SREG="$3"; STYPE="$4"; }

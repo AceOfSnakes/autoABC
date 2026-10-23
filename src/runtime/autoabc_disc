@@ -10,8 +10,7 @@ LOG="$BASE/regiond.log"
 STATE="$BASE/regiond.state"
 PIDFILE="$BASE/regiond.pid"
 SELF_PID="$$"
-BB="/mnt/ubi_boot/jb_overlay/bin/busybox"
-[ -x "$BB" ] || BB="/bin/busybox"
+BB="/mnt/ubi_boot/autoABC/bin/busybox"
 
 cleanup_pidfile() {
     P="$(cat "$PIDFILE" 2>/dev/null)"

@@ -1,5 +1,6 @@
 #!/bin/sh
 VERSION="autoABC region control"
+BB="/mnt/ubi_boot/autoABC/bin/busybox"
 ADDR_DEC=19089148
 ADDR_HEX="0x012346FC"
 
@@ -16,7 +17,7 @@ find_pid() {
 }
 
 read_bytes() {
-    dd if="/proc/$1/mem" bs=1 skip="$ADDR_DEC" count=2 2>/dev/null | hexdump -v -e '1/1 "%02x "'
+    "$BB" dd if="/proc/$1/mem" bs=1 skip="$ADDR_DEC" count=2 2>/dev/null | "$BB" hexdump -v -e '1/1 "%02x "'
 }
 
 region_name() {
@@ -55,19 +56,19 @@ case "$cmd" in
         echo "CDR=$CDR"
         ;;
     A|a)
-        printf '\001' | dd of="/proc/$PID/mem" bs=1 seek="$ADDR_DEC" count=1 conv=notrunc 2>/dev/null
+        printf '\001' | "$BB" dd of="/proc/$PID/mem" bs=1 seek="$ADDR_DEC" count=1 conv=notrunc 2>/dev/null
         exec "$0" status
         ;;
     B|b)
-        printf '\002' | dd of="/proc/$PID/mem" bs=1 seek="$ADDR_DEC" count=1 conv=notrunc 2>/dev/null
+        printf '\002' | "$BB" dd of="/proc/$PID/mem" bs=1 seek="$ADDR_DEC" count=1 conv=notrunc 2>/dev/null
         exec "$0" status
         ;;
     C|c)
-        printf '\003' | dd of="/proc/$PID/mem" bs=1 seek="$ADDR_DEC" count=1 conv=notrunc 2>/dev/null
+        printf '\003' | "$BB" dd of="/proc/$PID/mem" bs=1 seek="$ADDR_DEC" count=1 conv=notrunc 2>/dev/null
         exec "$0" status
         ;;
     off|OFF|stock|STOCK)
-        printf '\377' | dd of="/proc/$PID/mem" bs=1 seek="$ADDR_DEC" count=1 conv=notrunc 2>/dev/null
+        printf '\377' | "$BB" dd of="/proc/$PID/mem" bs=1 seek="$ADDR_DEC" count=1 conv=notrunc 2>/dev/null
         exec "$0" status
         ;;
     *)

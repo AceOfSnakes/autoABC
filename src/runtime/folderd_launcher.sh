@@ -1,8 +1,7 @@
 #!/bin/sh
 BASE="/mnt/ubi_boot/autoABC"
 PIDFILE="$BASE/folderd.pid"
-BB="/mnt/ubi_boot/jb_overlay/bin/busybox"
-[ -x "$BB" ] || BB="/bin/busybox"
+BB="/mnt/ubi_boot/autoABC/bin/busybox"
 SELF="$$"
 echo "$SELF" > "$PIDFILE"
 cleanup() {

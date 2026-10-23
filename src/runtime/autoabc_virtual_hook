@@ -1,7 +1,7 @@
 #!/bin/sh
 VERSION="autoABC virtual source hook"
 BASE="/mnt/ubi_boot/autoABC"; LOG="$BASE/hookd.log"; PIDFILE="$BASE/hookd.pid"
-BB="/mnt/ubi_boot/jb_overlay/bin/busybox"; [ -x "$BB" ] || BB="/bin/busybox"
+BB="/mnt/ubi_boot/autoABC/bin/busybox"
 BDMV_ADDR=$((0x01c006c8)); ISO_ADDR=$((0x01c007e4)); GOT_ADDR=$((0x011d8e40)); BASE_CAVE=$((0x01c03a00)); EXT_CAVE=$((0x01c11200)); ORIG_OFF=$((0x20)); WRAP_OFF=$((0x80))
 SELF="$$"; echo "$SELF" > "$PIDFILE"
 log(){ TS="$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null)"; [ -n "$TS" ] || TS=NO_DATE; echo "$TS $*" >> "$LOG"; }
@@ -57,7 +57,7 @@ install_hook(){
  write_mem "$P" "$GOT_ADDR" "$W" || { rm -f "$GOTTMP"; return 9; }
  same_mem "$P" "$GOT_ADDR" 4 "$W" || { write_mem "$P" "$GOT_ADDR" "$GOTTMP"; rm -f "$GOTTMP"; return 9; }
  echo "$P $PROF" > /tmp/autoabc_hook.state; echo "$P $PROF" > /tmp/autoabc_bdpprog.pid
- ORIGH="$(hexdump -v -e '1/4 "%08x"' "$GOTTMP" 2>/dev/null)"; rm -f "$GOTTMP"
+ ORIGH="$("$BB" hexdump -v -e '1/4 "%08x"' "$GOTTMP" 2>/dev/null)"; rm -f "$GOTTMP"
  log "GOT_HOOK_INSTALLED pid=$P profile=$PROF got=0x011d8e40 wrapper=$(printf '0x%08x' $((C+WRAP_OFF))) original=0x${ORIGH:-UNKNOWN} classify=BDMV_LR_0x00a1fb77_ISO_STRING capture=PHYSICAL_IPCD_FIRST_27 mode=GOT_PREPLAY"
  return 0
 }
