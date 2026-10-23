@@ -1,36 +1,36 @@
-# Removing autoABC
+# Uninstalling autoABC
 
-Use the **standalone** `autoABC-1.0.0-uninstall.zip`, not the installer ZIP and not a manual deletion of `/mnt/ubi_boot/autoABC`.
+[Back to README](../README.md) · [v1.1.0 release](https://github.com/DamnFine815/autoABC/releases/tag/v1.1.0)
 
-## Uninstall via USB AutoScript
+**Always use the uninstaller matching the version currently installed.** Do not use the 1.1.0 uninstaller against a 1.0.0 installation or vice versa. **Uninstall the older version and fully reboot before installing any newer version.**
 
-1. Stop playback, eject the disc and fully power down the OPPO UDP-203.
-2. Remove any previous `AutoScript/` directory from the USB stick; extract **only** the uninstall ZIP into the USB root.
-3. Confirm the root contains `AutoScript/AutoScript.TSS`, `AutoScript/autoABC-uninstall.sh` and `AutoScript/autoABC-uninstall.id`.
-4. Insert the USB and start the player from complete power-off.
-5. Verify `autoABC-uninstall-result.txt` at the USB root contains **`UNINSTALLED`**. The tray may open as an extra indicator, but that alone is insufficient.
-6. Remove the USB and fully power-cycle again.
+## Uninstall autoABC 1.1.0
 
-SHA-256 of the release ZIP:
+1. Download [autoABC-1.1.0-uninstall.zip](https://github.com/DamnFine815/autoABC/releases/download/v1.1.0/autoABC-1.1.0-uninstall.zip). Its SHA-256 is:
 
-```text
-aa15f85d37eac272fbffad3d27800c1efc220657cda794876e25b827836c7862
-```
+   `92c8a3bef287a25795739447253654e0db3938badc63314f80bc684f8915f444`
 
-## What the uninstaller intends to change
+2. Stop playback, power the OPPO UDP-203 completely off, and remove other installation sticks.
+3. Extract **only** the uninstaller ZIP into the root of a clean, player-readable USB volume. Its layout begins:
 
-- Refuses symlinks or unfamiliar modifications to its owned early-boot wrapper/backup.
-- Verifies a staged copy of the saved original `brick_monitor` before replacing the active wrapper.
-- Stops autoABC processes, restores the exact saved original monitor, checks it against its backup, then removes only the autoABC runtime and owned backup/temporary state.
-- Leaves unrelated jailbreak overlay content and unrelated mods untouched.
-- Does not depend on a functioning `bdpprog.1` player signature, so a broken playback process should not itself block removal.
+   ```text
+   USB_ROOT/
+     AutoScript/
+       AutoScript.TSS
+       autoABC-uninstall.id
+       autoABC-uninstall.sh
+     SHA256SUMS_RELEASE
+   ```
 
-autoABC 1.0.0 is reported working by the maintainer. The published uninstaller retains byte-identical launcher and script payloads and has been verified offline.
+4. Insert USB, switch on, and check **`autoABC-uninstall-result.txt`** on the stick for **`UNINSTALLED`**. If it says `FAILED`, inspect `autoABC-uninstall.log`. Tray motion is not sufficient proof.
+5. Remove the USB stick and **fully power-cycle** the player.
 
-## Failure or no result file
+The uninstaller verifies its owned runtime and boot-chain markers, restores only recognized backed-up files, and avoids overwriting unknown third-party changes. It is intended to preserve unrelated jb_overlay and oppo-dv-mkv files and configurations. If ownership or the backup cannot be verified, the safe result is **`FAILED`**, not a forced removal.
 
-- `FAILED`: read `autoABC-uninstall.log` on USB; **do not force file deletion**.
-- No output: check whether `AutoScript/` is at the USB root, that no other installer script is on the same stick, and check `/tmp/autoABC-uninstall-error.txt` via SSH/Telnet if accessible.
-- A genuine original `brick_monitor` backup that cannot be verified is a **hard stop**, not an invitation to overwrite it manually.
+**Do not manually delete `/mnt/ubi_boot/autoABC` or replace `brick_monitor`.**
 
-A separate manual `UNINSTALL.sh` exists at the original installer ZIP root for expert recovery, but it is **not** run by the install AutoScript. Its behavior must be reviewed in the context of the affected device before use.
+## Upgrading from autoABC 1.0.0
+
+Use the **historical [autoABC-1.0.0-uninstall.zip](https://github.com/DamnFine815/autoABC/releases/download/v1.0.0/autoABC-1.0.0-uninstall.zip)** first. Confirm `UNINSTALLED` and perform a complete power cycle. Then run the v1.1.0 CHECKONLY on its own USB stick before installing.
+
+See [Installation](INSTALLATION.md), [Troubleshooting](TROUBLESHOOTING.md) and [Compatibility](COMPATIBILITY.md).
