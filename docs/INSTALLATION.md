@@ -1,84 +1,76 @@
-# Installing autoABC 1.0.0
+# Installing autoABC 1.1.0
 
-[Back to main README](../README.md)
+[Back to README](../README.md) · [Release v1.1.0](https://github.com/DamnFine815/autoABC/releases/tag/v1.1.0)
 
-**Supported target:** OPPO UDP-203 with RU-JB 65-0131, an operational jailbreak overlay, a running compatible `bdpprog.1` and USB AutoScript support. The installer verifies exact code signatures and rejects incompatible environments.
+**Supported target:** OPPO UDP-203 with RU-JB 65-0131 and a compatible, recognized player/boot chain. Supported layouts include identified jb_overlay v1.7/V2/V3, oppo-dv-mkv v1.6.0, and recognized combined installations. **CHECKONLY must pass on the actual player.**
 
-## Before touching the player
+## Before starting
 
-1. Confirm the model is an **OPPO UDP-203**. Check firmware under the player's Device Setup > Firmware Information menu; the supported modified environment is **RU-JB 65-0131**, not merely the ordinary official 65-0131 version number.
-2. Make and verify your own backup/recovery path for the existing environment. In particular, the jailbreak overlay's `brick_monitor` must work, must not be a symlink, and cannot be an unknown nested third-party wrapper.
-3. Stop any playback, eject the disc, and make sure no other mod-installation USB sticks are attached. An incompatible live firmware-code signature causes an intentional abort; do not bypass it.
-4. On your computer, verify the downloaded ZIP checksum against the `SHA256SUMS` provided for this release:
+1. **Uninstall any older autoABC using the uninstaller matching that older version.** Fully power-cycle before trying 1.1.0. Never install a new release on top of an older one.
+2. If you have standalone [UOPfree](https://github.com/DamnFine815/UOPfree), uninstall it before enabling integrated `UOPFREE=1` (the default). Otherwise, deliberately choose `UOPFREE=0`.
+3. Keep a working recovery/backup method, stop playback, and remove other installer sticks. Unexpected firmware signatures or modified boot wrappers cause an intentional refusal.
+4. Download **only the actual v1.1.0 release assets**, not GitHub's automatically generated source ZIP:
 
-```sh
-# macOS
-shasum -a 256 autoABC-1.0.0-install.zip
+| File | Purpose | SHA-256 |
+| --- | --- | --- |
+| [CHECKONLY](https://github.com/DamnFine815/autoABC/releases/download/v1.1.0/autoABC-1.1.0-CHECKONLY.zip) | Read-only preflight before install | `d8896b250dd072a86ce8df7ed007e0e980c01deda520df9ec43f6546dfd90b8f` |
+| [INSTALL](https://github.com/DamnFine815/autoABC/releases/download/v1.1.0/autoABC-1.1.0-install.zip) | Install or verify identical installation | `10ed41939612614cf6d7c8c43f20ddaf0e007ec73eb9a584916c057debd00a2d` |
+| [UNINSTALL](https://github.com/DamnFine815/autoABC/releases/download/v1.1.0/autoABC-1.1.0-uninstall.zip) | Matching removal and restore | `92c8a3bef287a25795739447253654e0db3938badc63314f80bc684f8915f444` |
 
-# Linux (or macOS with coreutils)
-sha256sum autoABC-1.0.0-install.zip
-```
+[SHA256SUMS](https://github.com/DamnFine815/autoABC/releases/download/v1.1.0/SHA256SUMS) lists the three exact archive fingerprints. Example checksum verification on macOS: `shasum -a 256 autoABC-1.1.0-install.zip`. On Linux: `sha256sum autoABC-1.1.0-install.zip`.
 
-Expected SHA-256:
+## 1. CHECKONLY first
 
-```text
-2f57b16aa8b779265c5fe9561cf2a9c1b535837fad2c7fd5cb07109264cafe44
-```
-
-## Prepare the USB stick
-
-Use an OPPO-readable USB volume (FAT32 is the conventional AutoScript choice). Extract **only** the installer ZIP directly to its root. The resulting tree includes:
+Extract **only** the CHECKONLY ZIP onto a clean, player-readable USB volume. The root must contain `AutoScript/AutoScript.TSS` and the following two editable configuration files:
 
 ```text
 USB_ROOT/
-├── AutoScript/
-│   ├── AutoScript.TSS
-│   ├── autoABC-install.sh
-│   ├── autoABC-release.id
-│   ├── config.ini
-│   └── autoABC/...
-├── CHECK_READONLY.sh
-└── SHA256SUMS_RELEASE
+  AutoScript/
+    AutoScript.TSS
+    CHECKONLY
+    autoABC-install.sh
+    config.ini
+    uopfree.ini
+    autoABC/...
 ```
 
-The root must **not** be `USB_ROOT/autoABC-1.0.0-install/AutoScript/`. Do not combine installer and uninstaller folders.
+The root must **not** contain an additional ZIP-named directory above `AutoScript`. Do not combine the contents of multiple release ZIPs.
 
-### Select configuration before installation
+Edit these files with a plain-text editor:
 
-Open `USB_ROOT/AutoScript/config.ini` in a plain-text editor:
-
+**`AutoScript/config.ini`**
 ```ini
 ISO_BDMV=1
+EARLYBOOT=1
 ```
 
-Change the value to `0` only if you want automatic region switching for physical Blu-ray Discs but **not** for ISO or BDMV. The option accepts exactly `0` or `1`, one entry, optionally with blank lines or `#` comments. No other keys, duplicates or UTF-8 BOM. This editable file is deliberately excluded from the sealed program-file manifest.
-
-## Install
-
-1. Power the UDP-203 completely off after stopping playback and removing any disc.
-2. Insert the prepared USB stick and power the player on.
-3. The AutoScript bootstrap finds the complete release on its USB mount, validates the payload and current player, stages the installation and safely preserves the genuine existing early-boot monitor before changing the wrapper.
-4. Inspect `autoABC-result.txt` at the USB root. A successful installation contains `INSTALLED`. If `FAILED`, missing, or uncertain, inspect `autoABC.log`; do **not** interpret an optical tray movement as proof of success.
-5. Remove the USB stick **before another start**. Fully power-cycle the player.
-6. Verify `config.ini`, runtime status and representative physical/media playback tests. See [Verification](VERIFICATION.md).
-
-The installer checks four exact live player instructions **before changing the existing installation**. It also refuses unidentified or ambiguous boot-monitor ownership and unexpected payload hashes. autoABC 1.0.0 is confirmed working by the maintainer. The published USB archives preserve the validated functional payloads and passed offline archive/manifest verification.
-
-## Configuration after installation
-
-Installed file: `/mnt/ubi_boot/autoABC/config.ini`. Direct edits are for experts only and require a **full power cycle**. Reinstalling uses the USB `AutoScript/config.ini` as authoritative, even if the installed setting differs.
-
-## Post-install status for SSH/Telnet users
-
-```sh
-cat /mnt/ubi_boot/autoABC/config.ini
-sh /mnt/ubi_boot/autoABC/config.sh check
-sh /mnt/ubi_boot/autoABC/status.sh
-/mnt/ubi_boot/autoABC/autoabcctl status
+**`AutoScript/uopfree.ini`**
+```ini
+UOPFREE=1
 ```
 
-The ZIP-root `CHECK_READONLY.sh` is a **post-install** read-only audit; copy it to `/tmp` on the player and run `sh /tmp/CHECK_READONLY.sh`. It does not certify an unknown firmware for installation.
+- `ISO_BDMV=1` enables region detection on ISO and BDMV folders as well as physical Blu-rays. Choose `0` to avoid optional virtual-media startup analysis.
+- `EARLYBOOT=1` is the recommended default, allowing an already-inserted disc to be handled earlier during startup. `0` uses the later startup path.
+- `UOPFREE=1` enables integrated RAM-only STOP/MENU/NEXT unblocking where supported. `0` disables the integrated [UOPfree](https://github.com/DamnFine815/UOPfree) feature.
 
-## If anything goes wrong
+Fully power the player off, connect USB and start it. Read `autoABC-result.txt` from the stick; **`COMPATIBLE`** means the read-only preflight passed. Preserve `autoABC.log` if it fails. The check does **not** install autoABC or guarantee every later boot or disc.
 
-Do not manually replace `brick_monitor`, alter firmware offsets, mix AutoScript USB sticks or repeatedly attempt to install without reviewing logs. See [Troubleshooting](TROUBLESHOOTING.md) and [Uninstallation](UNINSTALLATION.md).
+## 2. INSTALL
+
+Remove the CHECKONLY USB files. Extract **only** the INSTALL ZIP to the USB root. **Set the same `config.ini` and `uopfree.ini` values** as you used in CHECKONLY.
+
+Power on with the USB stick and read `autoABC-result.txt`:
+
+- **`INSTALLED`:** installation completed.
+- **`ALREADY_INSTALLED`:** the exact same version and configuration were verified; nothing new was installed.
+- **`FAILED`:** do **not** assume it succeeded; inspect `autoABC.log` and keep the current environment intact.
+
+**An EJECT/tray movement is not proof of success.** The tray command is best effort; the result file is authoritative.
+
+Remove the USB stick and fully power-cycle the player before testing playback. For experienced users, [Telnet / SSH status commands](../README.md#telnet--ssh-quick-reference) show region control, PSR20, UOPfree and boot logs.
+
+## 3. UNINSTALL or change options
+
+Use **the matching `autoABC-1.1.0-uninstall.zip`** and a clean USB stick, then power-cycle. For installation-time changes (especially Earlyboot), first uninstall the same version and reboot; then repeat CHECKONLY and INSTALL with revised options. See [Uninstallation](UNINSTALLATION.md) and [Configuration](CONFIGURATION.md).
+
+**Never manually delete `/mnt/ubi_boot/autoABC`, modify the boot monitor, or mix installers.**
