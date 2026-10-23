@@ -1,19 +1,21 @@
-# Frequently asked questions
+# Frequently asked questions — autoABC 1.1.0
 
-**Which player and firmware do I need?**  An **OPPO UDP-203 with RU-JB 65-0131 jailbreak firmware** and working jailbreak overlay. The installer checks specific live code signatures and startup ownership.
+**What firmware do I need?** An OPPO UDP-203 running RU-JB 65-0131 with matching live player code, AutoScript and a recognized boot chain. `jb_overlay` **is not mandatory** when a supported oppo-dv-mkv-only wrapper is present. Always run CHECKONLY; see [Compatibility](COMPATIBILITY.md).
 
-**Does autoABC change my permanent Blu-ray region?**  It selects a compatible region during playback and is designed to restore the configured stock state afterward. It does not change the DVD region.
+**Can I install over 1.0.0 or an older test build?** **No.** Use the matching older-version uninstaller and fully power-cycle first, then run 1.1.0 CHECKONLY.
 
-**Are all seven region masks supported?**  Yes, all nonempty A/B/C combinations are implemented. Hardware evidence exists for A, B, A+B and B+C; synthetic tests cover C-only and A+C. No worldwide disc-compatibility guarantee is possible. [Details](REGION_SUPPORT.md).
+**Do I need separate UOPfree?** **No.** [UOPfree](https://github.com/DamnFine815/UOPfree) is integrated in 1.1.0 (`UOPFREE=1` by default). Uninstall standalone UOPfree before enabling the integrated version, or deliberately choose `UOPFREE=0`.
 
-**Does `ISO_BDMV=1` mean ISO/BDMV auto-region is enabled?**  Yes, that is the default. Change to `ISO_BDMV=0` to turn off only virtual-media automatic region detection.
+**Why is `EARLYBOOT=1` the default?** An already-inserted disc can begin loading while the player starts. Earlyboot initializes autoABC sooner, avoiding some first-disc region-screen races. `EARLYBOOT=0` is an option for users who prefer the later startup path.
 
-**Does `ISO_BDMV=0` disable ISO playback?**  No. It leaves the player's ordinary virtual-media playback available and avoids autoABC processing for those sources.
+**Does ISO_BDMV=1 slow ISO/BDMV opening?** Some complex BD-J virtual media need region-analysis time; there is no guaranteed fixed delay. `ISO_BDMV=0` disables automatic virtual-media region detection, but **physical-disc auto-region and native ISO/BDMV playback remain available**. [Timing observations](research/VIRTUAL_MEDIA_TIMING.md).
 
-**Why can some BD-J ISOs open more slowly?**  Complex Java callgraph analysis sometimes takes several hundred milliseconds. A measured title needed roughly one second of detector work. It is not a fixed delay. [Measurements](research/VIRTUAL_MEDIA_TIMING.md).
+**Does autoABC change the permanent region or DVD region?** No. It performs runtime Blu-ray region selection and is designed to restore the normal stock state after playback. It is not a DVD region patch.
 
-**Does autoABC maintain a per-disc cache?**  No; no cache feature or setting exists in 1.0.0.
+**Are all seven A/B/C allowed-region masks supported?** The detector implements all seven nonempty combinations. Hardware and synthetic-test evidence differ by type; see [Region support](REGION_SUPPORT.md). No guarantee applies to every disc worldwide.
 
-**Is this a jailbreak-firmware installation?**  No. The required RU-JB firmware and working overlay must already be installed.
+**What does CHECKONLY do?** It verifies firmware, known boot ownership, signatures, payload and options without installing persistent autoABC changes. A `COMPATIBLE` report is necessary but cannot prove every later hardware boot.
 
-**What if the optical tray opens but there is no result file?**  Tray motion alone does not demonstrate success. Read `autoABC.log` or `autoABC-uninstall.log` and follow [Troubleshooting](TROUBLESHOOTING.md).
+**Does autoABC keep a disc-region cache?** No persistent per-disc region cache exists in 1.1.0.
+
+**The tray opened, but where is the result?** Check `autoABC-result.txt` or `autoABC-uninstall-result.txt` on USB. Tray motion alone does not prove success. See [Troubleshooting](TROUBLESHOOTING.md).
