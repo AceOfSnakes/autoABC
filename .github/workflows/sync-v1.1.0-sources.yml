@@ -1,0 +1,78 @@
+name: One-time - mirror pinned autoABC 1.1.0 shell sources
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sync-v1.1.0-sources.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: autoABC-v1.1.0-source-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.head_commit.message == 'ci: sync verified v1.1.0 sources'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out exact commit
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Fetch exactly the released assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/autoabc110-assets"
+          gh release download v1.1.0 --repo "$GITHUB_REPOSITORY" \
+            --dir "$RUNNER_TEMP/autoabc110-assets" \
+            --pattern 'autoABC-1.1.0-*.zip' \
+            --pattern 'SHA256SUMS'
+          test "$(find "$RUNNER_TEMP/autoabc110-assets" -maxdepth 1 -type f | wc -l)" -eq 4
+
+      - name: Mirror readable source with strict SHA-256 and CRC verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/sync_release_sources.py "$RUNNER_TEMP/autoabc110-assets" .
+          python3 tools/verify_release.py "$RUNNER_TEMP/autoabc110-assets"
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          count=0
+          for d in (Path('src/runtime'), Path('installer/install'), Path('installer/checkonly'), Path('installer/uninstall')):
+              for p in d.iterdir():
+                  if p.is_file() and p.read_bytes().startswith(b'#!/bin/sh'):
+                      subprocess.run(['sh','-n',str(p)],check=True)
+                      count+=1
+          assert count>=20, count
+          print('SHELL_SYNTAX=PASS files='+str(count))
+          PY
+
+      - name: Preserve old 1.0.0-only helpers and commit reviewed source mirror
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -d installer/read-only && ! -e installer/legacy-v1.0.0 ]]; then
+            git mv installer/read-only installer/legacy-v1.0.0
+          fi
+          git add src/runtime installer docs/research/INSTALLED_PAYLOAD_SHA256SUMS_1.1.0.txt docs/research/RELEASE_1.1.0_SHA256SUMS.txt
+          if git diff --cached --quiet; then
+            echo 'SOURCE_SYNC=ALREADY_IDENTICAL'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore: mirror exact v1.1.0 release shell sources'
+          git push origin HEAD:main
+          echo 'SOURCE_SYNC=PASS'
