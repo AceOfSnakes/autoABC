@@ -1,36 +1,37 @@
-# Troubleshooting
+# Troubleshooting — autoABC 1.1.0
 
-## USB install appears to do nothing
+[Back to README](../README.md) · [Installation](INSTALLATION.md)
 
-Ensure `AutoScript/AutoScript.TSS` is at the root of the USB volume, not inside a nested extraction directory. Try a clean, OPPO-readable USB stick with **only one** package. Check for `autoABC-result.txt` and `autoABC.log` on that same USB. The USB mount point can vary; the installer searches mounted devices and will abort on ambiguous matching installations.
+## CHECKONLY or INSTALL appears to do nothing
 
-## Result says `FAILED`
+Only one extracted package may be on a clean USB stick, with `AutoScript/AutoScript.TSS` **directly at its root**. Run the [1.1.0 CHECKONLY](https://github.com/DamnFine815/autoABC/releases/tag/v1.1.0) first. Find `autoABC-result.txt` and `autoABC.log` on USB. The installer can refuse ambiguous USB mounts or unknown launchers.
 
-Read `autoABC.log` and preserve it after redacting private details. A mismatched player instruction, missing live player, invalid `config.ini`, mismatched runtime checksum, unreadable backup or unknown wrapper are **intentional stops**. Never patch around the error manually.
+## Result is FAILED or NOT COMPATIBLE
 
-## There is no uninstall result
+Keep the exact result file and log. Common intentional refusal reasons include an older autoABC install that was not uninstalled, incompatible `brick_monitor`/oppo-dv-mkv wrapper, live player signature mismatch, altered runtime hashes, invalid INI settings or separate standalone [UOPfree](https://github.com/DamnFine815/UOPfree) when `UOPFREE=1`.
 
-Use the separate uninstall archive. Confirm only `AutoScript/AutoScript.TSS` and `autoABC-uninstall.sh` from that archive were extracted. The separate boot command uses MTK-compatible CRLF line endings. Check `/tmp/autoABC-uninstall-error.txt` if SSH/Telnet is available. Avoid manually replacing `brick_monitor`.
+**Do not bypass safety checks or manually replace boot files.** Uninstall an older release with its matching uninstaller and reboot before running CHECKONLY again.
 
-## ISO/BDMV still loads despite `ISO_BDMV=0`
+## EJECT/tray does not move
 
-This is expected. The switch disables *autoABC's automatic region switching* for these sources, not native ISO/BDMV playback. Verify the installed file and effective mode after a complete power cycle:
+The EJECT command is **best effort**. Look at the `EJECT_STATUS` line in the USB result/log. `INSTALLED`, `COMPATIBLE`, `UNINSTALLED` and `FAILED` in their respective result files are authoritative, not tray movement.
 
-```sh
-cat /mnt/ubi_boot/autoABC/config.ini
-sh /mnt/ubi_boot/autoABC/status.sh
-```
+## Uninstall failed
 
-If the runtime mode disagrees with the file, power-cycle; simply resuming playback is not enough.
+Use the **matching installed-version uninstaller**, not a newer or older package. For 1.1.0 read `autoABC-uninstall-result.txt` and `autoABC-uninstall.log`. A missing or modified original boot backup should cause a deliberate refusal. Never manually delete `/mnt/ubi_boot/autoABC` or overwrite `brick_monitor`.
 
-## BD-J region status looks inconsistent
+## Already-inserted Blu-ray shows a region screen on first boot
 
-For some BD-J discs, the global region value and PSR20 override are separate. Review `status.sh`, physical-disc logs and PSR20 counters instead of treating one field as definitive. [Technical explanation](research/PHYSICAL_BDJ.md).
+Confirm `EARLYBOOT=1` in the installed configuration and the selected early boot mode with the [Telnet status commands](../README.md#telnet--ssh-quick-reference). The later `EARLYBOOT=0` path may activate too late for the first disc. Changing boot modes requires using the correct uninstaller and reinstalling with a matching CHECKONLY.
 
-## A title is slow to open
+## ISO/BDMV still plays when ISO_BDMV=0
 
-Some virtual BD-J titles need both core detection and Java callgraph analysis. Historical sample measurements are approximately 0.9-1.2 seconds of combined detector work, depending on source path; not all discs trigger this sequence. Try `ISO_BDMV=0` if you want the original ISO/BDMV playback behavior. No cache is implemented.
+Expected: `ISO_BDMV=0` stops **autoABC virtual-media region detection**, not the stock player's ISO/BDMV playback. Complex BD-J virtual media may take longer to open when region detection is enabled. If the delay is distracting, choose `ISO_BDMV=0` during the next verified installation.
+
+## BD-J PSR20 status appears inconsistent
+
+During BD-J playback, the regular region-control register and the PSR20 gate can report different values. Check the full `status.sh` output instead of using the displayed CBR region alone. See [BD-J research](research/PHYSICAL_BDJ.md).
 
 ## Report a problem
 
-Include original model, firmware family, source type, `ISO_BDMV` setting, expected and observed behavior, result-file status and appropriately **redacted** logs. Never upload copyrighted disc images, full proprietary firmware or unique device secrets.
+Include firmware, boot environment (jb_overlay version, oppo-dv-mkv version or combined), physical-disc/ISO/BDMV source, chosen `ISO_BDMV`/`EARLYBOOT`/`UOPFREE` values, expected versus observed behavior, result file and **redacted** logs. Never post copyrighted discs, firmware dumps, private keys or unique device secrets.
