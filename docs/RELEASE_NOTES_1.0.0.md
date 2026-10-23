@@ -1,4 +1,5 @@
 # autoABC 1.0.0 - Release Notes
+# OUTDATED — PLEASE DO NOT USE
 
 Automatic Blu-ray Region **A/B/C** selection for the **OPPO UDP-203 with RU-JB 65-0131 jailbreak firmware**.
 
