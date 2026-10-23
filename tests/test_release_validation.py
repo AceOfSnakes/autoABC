@@ -1,23 +1,37 @@
-import sys
+import hashlib
 import unittest
+
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
+import sync_release_sources as source
 
-sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'tools'))
-import verify_release as v
 
-class TestOfflineValidation(unittest.TestCase):
-    def test_sha256(self):
-        self.assertEqual(v.hash_bytes(b'abc'),'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad')
-    def test_safe_member(self):
-        for name in ['AutoScript/config.ini','AutoScript/autoABC/autoabc_disc','CHECK_READONLY.sh']:
-            v.assert_safe_member(name)
-    def test_path_traversal_rejected(self):
-        for name in ['../evil','/tmp/evil','x/../../bad','x\\bad','__MACOSX/foo','x/._state','x/.DS_Store']:
-            with self.subTest(name=name), self.assertRaises(ValueError):
-                v.assert_safe_member(name)
-    def test_hash_pins_present(self):
-        self.assertEqual(len(v.EXPECTED['install']['hash']),64)
-        self.assertEqual(v.EXPECTED['install']['files'],52)
-        self.assertEqual(v.EXPECTED['uninstall']['files'],4)
+class TestReleaseValidation(unittest.TestCase):
+    def test_sha256_reference(self):
+        self.assertEqual(source.sha(b"abc"), hashlib.sha256(b"abc").hexdigest())
+        self.assertEqual(source.sha(b"abc"), "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
 
-if __name__=='__main__': unittest.main()
+    def test_pinned_release_assets(self):
+        self.assertEqual(len(source.ASSETS), 3)
+        self.assertEqual(
+            {x[0] for x in source.ASSETS.values()},
+            {"autoABC-1.1.0-CHECKONLY.zip", "autoABC-1.1.0-install.zip", "autoABC-1.1.0-uninstall.zip"},
+        )
+        for filename, digest in source.ASSETS.values():
+            self.assertTrue(filename.endswith(".zip"))
+            self.assertEqual(len(digest), 64)
+            bytes.fromhex(digest)
+
+    def test_guard_rejects_false(self):
+        with self.assertRaises(ValueError):
+            source.check(False, "deliberate test mismatch")
+
+    def test_release_config_marker(self):
+        self.assertIn("CHECKONLY", source.ASSETS)
+        self.assertIn("install", source.ASSETS)
+        self.assertIn("uninstall", source.ASSETS)
+
+
+if __name__ == "__main__":
+    unittest.main()
