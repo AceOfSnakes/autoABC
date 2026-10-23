@@ -110,7 +110,6 @@ autoABC is **not** a DVD region patch, AACS/Cinavia bypass or universal promise 
 **BusyBox:** autoABC includes a static ARM BusyBox 1.31.0 binary. See the [official upstream source](https://busybox.net/downloads/busybox-1.31.0.tar.bz2) and [GNU GPLv2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html).
 
 Special thanks to **theaxledentaldj** from AVForums for his valuable help, technical discussions, and support throughout the development.
-
-Special thanks to **Cashkey** for testing **`EARLYBOOT=1`** with **oppo-dv-mkv**.
+Special thanks to **cashkey** from AVForums for testing **`EARLYBOOT=1`** with **oppo-dv-mkv**.
 
 autoABC is independent of OPPO Digital and is not affiliated with or endorsed by the manufacturer.
