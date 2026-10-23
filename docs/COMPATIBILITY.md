@@ -1,26 +1,20 @@
-# Compatibility and limitations
+# Compatibility and limitations — autoABC 1.1.0
 
-| Requirement | Status |
+**Target:** OPPO UDP-203, RU-JB 65-0131, USB AutoScript and a matching live `bdpprog.1` layout. A firmware number alone is **not** proof of compatibility.
+
+| Boot environment | 1.1.0 status |
 | --- | --- |
-| **OPPO UDP-203 with RU-JB 65-0131 jailbreak firmware** | Required environment |
-| Four matching live firmware-code signatures | Required; installer refuses an unexpected signature |
-| Working jailbreak overlay and early-boot launcher | Required |
-| Compatible live `bdpprog.1` process | Required for installation validation |
-| USB AutoScript support | Required for the packaged installer and uninstaller |
-| Physical HDMV / BD-J Blu-ray | Included |
-| ISO / BDMV region detection | Optional; default enabled |
-| DVD region switching | Not provided |
+| `jb_overlay v1.7` | Supported for exact recognized launcher and monitor signatures, including the known KEY8 variant |
+| `jb_overlay V2` | Known launcher/monitor signatures recognized; **separate real-device cold-boot confirmation is not documented** |
+| `jb_overlay V3` | Supported for recognized launcher and monitor signatures |
+| `oppo-dv-mkv v1.6.0` without jb_overlay | Supported for the known wrapper signature, including `EARLYBOOT=1` |
+| `jb_overlay` + `oppo-dv-mkv v1.6.0` | Supported for the verified combined boot-chain signatures |
+| Other oppo-dv-mkv signatures | May be accepted only when the **exact** known wrapper and player signatures match |
 
-**A matching firmware version display alone is not a guarantee of compatibility.** The installer performs exact code-signature checks, verifies the runtime payload and inspects the current boot-wrapper ownership. It refuses mismatches or ambiguous ownership rather than guessing.
+Every mode requires **[CHECKONLY](https://github.com/DamnFine815/autoABC/releases/download/v1.1.0/autoABC-1.1.0-CHECKONLY.zip)** to report **`COMPATIBLE`** on the actual player before installation. Unknown `brick_monitor` modifications, unexpected player-code bytes, incompatible boot ownership, duplicate standalone [UOPfree](https://github.com/DamnFine815/UOPfree) (with `UOPFREE=1`), and existing older autoABC installations are intentionally rejected.
 
-This is not a firmware update. It changes runtime player-memory state and integrates with the jailbreak overlay's early-boot startup. A recovery plan is recommended before installation.
+**Earlyboot:** `EARLYBOOT=1` is the default to catch discs inserted before powering on. `EARLYBOOT=0` keeps a later startup path which may miss the first disc. See [Configuration](CONFIGURATION.md).
 
-## Playback limitations
+**Playback:** Physical HDMV and BD-J Blu-ray region detection are included. ISO and BDMV are optional and default to enabled. The detector supports all seven A/B/C allowed-region combinations, but individual publisher-authored discs are not universally guaranteed; see [Region support](REGION_SUPPORT.md) and [Evidence](research/TEST_EVIDENCE.md). The PSR20 gate's value during BD-J playback can differ from the regular displayed region.
 
-- Region support covers all standard A/B/C allowed-region combinations, but **not all individual discs or custom navigation programs are guaranteed**. See [Region support](REGION_SUPPORT.md).
-- BD-J can use PSR20 for more than region enforcement; a mere Java reference is not evidence of a lock. Ambiguous results may be treated as UNKNOWN.
-- During BD-J playback, a global status view may differ from the region supplied by the PSR20 handler. Session state and restoration should be evaluated separately.
-- Certain virtual BD-J titles may open more slowly when `ISO_BDMV=1`. Disable only the virtual-media region handler with `ISO_BDMV=0` if this matters more than automatic virtual region selection.
-- The project does not bypass AACS, Cinavia, UHD copy protection, or DVD region coding.
-
-[Evidence and test examples](research/TEST_EVIDENCE.md) · [Verification](VERIFICATION.md)
+**Not provided:** DVD region unlocks, AACS/Cinavia/UHD copy-protection bypass, or a full firmware replacement. Installation hooks runtime process memory and the verified boot chain; keep a recovery method. Offline tests are not equivalent to a full hardware regression test.
