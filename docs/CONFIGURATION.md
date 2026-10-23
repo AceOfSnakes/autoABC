@@ -1,20 +1,34 @@
-# Configuration
+# autoABC 1.1.0 configuration
 
-`autoABC 1.0.0` has **one** user setting. The default is:
+[Back to README](../README.md) · [Installation](INSTALLATION.md)
+
+Both **CHECKONLY** and **INSTALL** contain the same default settings. Choose your values in both ZIPs **before using them**.
+
+## `AutoScript/config.ini`
 
 ```ini
 ISO_BDMV=1
+EARLYBOOT=1
 ```
 
-| Value | Physical Blu-ray | Blu-ray ISO / BDMV |
+| Option | Default | Meaning |
 | --- | --- | --- |
-| `ISO_BDMV=1` (default) | Automatic region selection enabled | Automatic region selection enabled |
-| `ISO_BDMV=0` | Automatic region selection enabled | Automatic selection disabled; native firmware playback unaffected |
+| `ISO_BDMV=1` | `1` | Automatic region detection for ISO/BDMV as well as physical Blu-rays. Complex BD-J virtual media may open slightly more slowly while examined. Set `0` if the extra delay bothers you; physical-disc auto-region stays enabled. |
+| `EARLYBOOT=1` | `1` | Starts autoABC early in the verified boot sequence so a pre-inserted disc/autoplay is less likely to reach region checks first. Set `0` for the later startup path; the first disc may race ahead. |
 
-The switch **does not** unlock every region-coded ISO/BDMV. `0` avoids autoABC's virtual media analysis; it can make certain BD-J ISO/BDMV opens feel faster when their region detection would take perceptible time. Do not advertise a universal fixed time saving. [Measured samples](research/VIRTUAL_MEDIA_TIMING.md).
+## `AutoScript/uopfree.ini`
 
-Edit `AutoScript/config.ini` on the **installer USB** before installation. The parser accepts exactly one `ISO_BDMV=0` or `ISO_BDMV=1`, optional blank lines and `#` comments; invalid values, duplicate keys, other options or BOM cause a safe rejection. No text is evaluated as shell code.
+```ini
+UOPFREE=1
+```
 
-The USB file is copied into `/mnt/ubi_boot/autoABC/config.ini` on every install/reinstall. A manually edited installed copy takes effect after a **full power cycle**, and is overwritten by the USB value upon a later reinstall.
+- `UOPFREE=1` (default): enable integrated [UOPfree](https://github.com/DamnFine815/UOPfree), removing applicable disc-authored User Operation Prohibitions (STOP/MENU/NEXT) in RAM.
+- `UOPFREE=0`: disable only the integrated UOPfree feature.
 
-There is **no cache, cache configuration, per-disc remembered table, or teaching mode**. The physical BD-J PSR20 handler remains active in both ISO settings. When virtual auto-region is disabled, virtual PSR20 calls are passed to the unmodified player handler rather than answered with a fabricated universal region.
+**Important:** Uninstall a separate standalone [UOPfree](https://github.com/DamnFine815/UOPfree) installation before using `UOPFREE=1`. The installer refuses duplicate standalone UOPfree states.
+
+The `config.ini` parser requires exactly one `ISO_BDMV=0/1` and exactly one `EARLYBOOT=0/1`; unknown keys and duplicates are rejected. `uopfree.ini` requires exactly one valid `UOPFREE=0/1`. Neither file is executed as shell code.
+
+**Changing installation-time options:** Use the matching version's uninstaller, fully reboot, repeat CHECKONLY with the revised values, then INSTALL using those same values. Do not assume editing an installed INI alone will remove or add the Earlyboot wrapper.
+
+There is no permanent per-disc region cache or teach/learning mode. The physical BD-J PSR20 gate remains enabled regardless of `ISO_BDMV`, and ISO/BDMV playback itself remains available when virtual auto-region is off. See [Virtual-media timing](research/VIRTUAL_MEDIA_TIMING.md).
