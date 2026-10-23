@@ -1,45 +1,30 @@
-# Source availability and release provenance
+# Source availability and build provenance — autoABC 1.1.0
 
-## The distinction
+## Published release versus repository sources
 
-- **Source repository:** English documentation, readable integration shell scripts, read-only diagnostic source, AutoScript launcher source, engineering evidence index and offline verification tools.
-- **Sealed release assets:** two checksum-pinned USB ZIPs retaining byte-identical functional components from the validated 1.0.0 payloads.
-- **Development records:** historical reports and lab notes are maintained separately.
+- The official [v1.1.0 GitHub release](https://github.com/DamnFine815/autoABC/releases/tag/v1.1.0) supplies **three separate checksum-pinned USB AutoScript ZIPs** (CHECKONLY, INSTALL and UNINSTALL) plus SHA256SUMS.
+- The **readable shell scripts**, AutoScript launchers, editable INI templates and release hashes are mirrored under `src/runtime/` and `installer/` from those **exact** published assets. `tools/sync_release_sources.py` verifies their hash manifests and byte equivalence.
+- The release ZIPs also include **compiled ARM executables**, firmware-specific hook bytes and BusyBox. This repository does **not** provide an independent source-to-binary build chain for every native helper. Do not confuse source scripts with a ready-to-install USB package.
 
-Do **not** interpret the source repository as a complete from-scratch build system for every native binary. The complete ARM source/toolchain/reproducible build inputs are not present in this source repository. The shell files copied under `src/runtime` and `installer` match the release assets byte-for-byte; the repository intentionally does not duplicate the native release assets.
+## Audit and stage sealed official assets
 
-## Release archive verification / assembly
-
-The root `mkrelease.sh` is retained for compatibility. Despite its historical name, it verifies and copies the existing, checksum-pinned archives; it does not compile source code or build native ARM binaries.
-
-## Local sealed-archive build / verification
-
-Put the previously supplied, verified ZIPs on your computer, then run:
+Download all **four** v1.1.0 Release assets into one directory. Run:
 
 ```sh
-sh mkrelease.sh /path/to/autoABC-1.0.0-install.zip /path/to/autoABC-1.0.0-uninstall.zip
+python3 tools/verify_release.py /path/to/release-assets
+sh mkrelease.sh /path/to/release-assets
 ```
 
-This procedure checks the exact two outer SHA-256 identities, expected package layout, CRCs, internal manifests and editable default configuration. It then **copies**, without recompression, both sealed files into `dist/` and writes `dist/SHA256SUMS`.
+The verifier checks **exact released outer SHA-256 values, ZIP CRCs, inner hash manifests and byte-for-byte parity with the published shell sources and installer templates**. `mkrelease.sh` copies verified archives to `dist/` and rechecks `SHA256SUMS`. **Neither command compiles a native ARM executable or rebuilds a new installer.**
 
-It does **not** compile native code, change the installed mod or create a new firmware patch. For a true independently reproducible source build, the remaining native-source and asset-provenance gaps must be resolved first.
+The corresponding published outer SHA-256 values are preserved in [verification](VERIFICATION.md) and [research/RELEASE_1.1.0_SHA256SUMS.txt](research/RELEASE_1.1.0_SHA256SUMS.txt).
 
-## Fixed archive identities
+## Sources, tags and archival history
 
-```text
-2f57b16aa8b779265c5fe9561cf2a9c1b535837fad2c7fd5cb07109264cafe44  autoABC-1.0.0-install.zip
-aa15f85d37eac272fbffad3d27800c1efc220657cda794876e25b827836c7862  autoABC-1.0.0-uninstall.zip
-```
+The v1.0.0 scripts and archived research retain value as **history**, but should not be used to install v1.1.0. Some older research pages and historical v1.0.0 source archives correctly describe their original version.
 
-A ZIP with the same display name but a different hash is a **different artifact**; confirm its identity against the published `SHA256SUMS`.
+**Note on GitHub tag snapshots:** GitHub's auto-generated “Source code (zip/tar.gz)” is a snapshot of the release *tag*, not one of the verified USB release ZIPs. Updating `main` does not retroactively modify an existing `v1.1.0` tag snapshot. Users should install from the v1.1.0 **Release assets**, never the automatic source snapshot.
 
-## Source tree scope
+## Licensing and provenance
 
-- `src/runtime/`: exactly copied shell-side runtime components; existing runtime filenames are intentional API/path names.
-- `installer/install/`: exact install script, install AutoScript launcher, and editable config template.
-- `installer/uninstall/`: exact separate uninstall script and AutoScript launcher.
-- `installer/read-only/`: exact diagnostic checker and separately provided manual recovery helper.
-- `docs/research/`: derived, curated English documentation and two internal file-hash manifests.
-- `tools/verify_release.py`: offline validator for the sealed archives.
-
-Shell scripts may contain **private compatibility identifiers** that are operationally required by their matching logic. Altering those text markers merely to rename an historical label could break installation or uninstall. These identifiers are not public product names.
+The bundled static ARM BusyBox v1.31.0 is separately governed by GPLv2. [Official upstream source](https://busybox.net/downloads/busybox-1.31.0.tar.bz2) · [GPLv2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html). Linking upstream source is informational; complete binary-corresponding build inputs are not verified. The native OPPO-specific compiled helpers are not rebuilt by this repository's shell verification tools.
