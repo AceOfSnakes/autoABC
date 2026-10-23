@@ -1,3 +1,9 @@
+# Historical release-engineering notes — v1.0.0 only
+
+> **Archived technical history.** These notes apply to the superseded 1.0.0 release, **not** to autoABC v1.1.0. For current packages, verification and source parity, see [v1.1.0 verification](../VERIFICATION.md), [Build and provenance](../BUILD_AND_PROVENANCE.md) and [v1.1.0 release](https://github.com/DamnFine815/autoABC/releases/tag/v1.1.0).
+
+---
+
 # Release engineering and integrity
 
 Release 1.0.0 ships **two distinct USB AutoScript archives** with fixed SHA-256 manifests. Both published archives retain the validated 1.0.0 functional payload bytes; no runtime code, AutoScript launchers or configuration bytes were changed during release preparation.
